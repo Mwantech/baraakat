@@ -1,0 +1,381 @@
+.signupContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8f9fb;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .signupContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.03) 0%, rgba(76, 201, 240, 0.03) 50%, rgba(247, 37, 133, 0.03) 100%);
+    z-index: 0;
+  }
+  
+  .mainContent {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .formContainer {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .formContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 0;
+    background: linear-gradient(to bottom, #4cc9f0, #f72585);
+    transition: height 0.5s ease;
+  }
+  
+  .formContainer:hover::before {
+    height: 100%;
+  }
+  
+  .formContainer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 0;
+    background: linear-gradient(to bottom, #f72585, #4cc9f0);
+    transition: height 0.5s ease;
+    transition-delay: 0.2s;
+  }
+  
+  .formContainer:hover::after {
+    height: 100%;
+  }
+  
+  .formContainer h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1a1a2e;
+    font-size: 2rem;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .formContainer h1::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(to right, #4cc9f0, #f72585);
+    margin: 0.5rem auto 0;
+    border-radius: 2px;
+  }
+  
+  /* Role Selection Styles */
+  .roleSelection {
+    text-align: center;
+  }
+  
+  .roleSelection h2 {
+    color: #1a1a2e;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+  
+  .roleOptions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .roleCard {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 170px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(230, 230, 230, 0.8);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .roleCard::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: linear-gradient(to top, rgba(76, 201, 240, 0.1), transparent);
+    transition: height 0.3s ease;
+    z-index: 0;
+  }
+  
+  .roleCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: rgba(76, 201, 240, 0.5);
+  }
+  
+  .roleCard:hover::before {
+    height: 100%;
+  }
+  
+  .roleIcon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .roleCard:hover .roleIcon {
+    transform: scale(1.1);
+  }
+  
+  .roleCard h3 {
+    color: #1a1a2e;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .roleCard p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Form Styles */
+  .signupForm {
+    margin-bottom: 1.5rem;
+    animation: formAppear 0.5s ease forwards;
+  }
+  
+  .formGroup {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  
+  .formGroup label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #16213e;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .formGroup input, .formGroup select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #16213e;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+  }
+  
+  .formGroup input:focus, .formGroup select:focus {
+    border-color: #4cc9f0;
+    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+    outline: none;
+  }
+  
+  .formGroup select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316213e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+  
+  .submitButton {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(45deg, #4cc9f0, #5e60ce);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    margin-bottom: 1rem;
+  }
+  
+  .submitButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #5e60ce, #f72585);
+    transition: left 0.5s ease;
+    z-index: -1;
+  }
+  
+  .submitButton:hover::before {
+    left: 0;
+  }
+  
+  .submitButton:hover {
+    box-shadow: 0 6px 15px rgba(94, 96, 206, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .backButton {
+    width: 100%;
+    padding: 0.85rem;
+    background: transparent;
+    color: #64748b;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .backButton:hover {
+    background-color: #f8f9fb;
+    color: #16213e;
+    border-color: #cbd5e1;
+  }
+  
+  .formFooter {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+  
+  .formFooter a {
+    color: #5e60ce;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    position: relative;
+  }
+  
+  .formFooter a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: linear-gradient(to right, #4cc9f0, #f72585);
+    transition: width 0.3s ease;
+  }
+  
+  .formFooter a:hover {
+    color: #f72585;
+  }
+  
+  .formFooter a:hover::after {
+    width: 100%;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 576px) {
+    .formContainer {
+      padding: 2rem 1.5rem;
+    }
+    
+    .roleOptions {
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .roleCard {
+      width: 80%;
+      max-width: 250px;
+      flex-direction: row;
+      justify-content: flex-start;
+      text-align: left;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    
+    .roleCard p {
+      text-align: left;
+    }
+    
+    .roleIcon {
+      margin-bottom: 0;
+      font-size: 2rem;
+    }
+    
+    .mainContent {
+      padding: 2rem 1rem;
+    }
+  }
+  
+  /* Animation for form appearing */
+  @keyframes formAppear {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .roleSelection {
+    animation: formAppear 0.5s ease forwards;
+  }
+  .errorMessage {
+    background-color: #ffebee;
+    color: #d32f2f;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .passwordHint {
+    color: #757575;
+    font-size: 0.8rem;
+    margin-top: 5px;
+  }

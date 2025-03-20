@@ -1,0 +1,673 @@
+/* style.module.css */
+.dashboardContainer {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #fff;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    padding: 20px 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .sidebarHeader {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 20px;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .navMenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .navItem {
+    margin-bottom: 5px;
+  }
+  
+  .navLink {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+  }
+  
+  .navLink:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
+  }
+  
+  .navLinkActive {
+    background-color: #eff6ff;
+    color: #3b82f6;
+    border-left: 3px solid #3b82f6;
+  }
+  
+  .navIcon {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  .mainContent {
+    flex: 1;
+    margin-left: 250px;
+    padding: 30px;
+  }
+  
+  .contentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .pageTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .userActions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .notificationBadge {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .notificationIcon {
+    font-size: 22px;
+    color: #64748b;
+  }
+  
+  .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .userProfile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  
+  .profileAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .profileInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profileName {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+  }
+  
+  .profileRole {
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  .card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .cardTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .cardAction {
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  
+  /* Dashboard widgets */
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .statCard {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .statIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+  }
+  
+  .statIcon.blue {
+    background-color: #eff6ff;
+    color: #3b82f6;
+  }
+  
+  .statIcon.green {
+    background-color: #ecfdf5;
+    color: #10b981;
+  }
+  
+  .statIcon.purple {
+    background-color: #f3e8ff;
+    color: #8b5cf6;
+  }
+  
+  .statIcon.orange {
+    background-color: #fff7ed;
+    color: #f97316;
+  }
+  
+  .statContent {
+    flex: 1;
+  }
+  
+  .statValue {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 5px;
+  }
+  
+  .statLabel {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .appointmentItem {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .appointmentItem:last-child {
+    border-bottom: none;
+  }
+  
+  .appointmentDate {
+    width: 80px;
+    height: 80px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+  }
+  
+  .appointmentDay {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  
+  .appointmentMonth {
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .appointmentInfo {
+    flex: 1;
+  }
+  
+  .appointmentTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 5px;
+  }
+  
+  .appointmentDoctor {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .appointmentTime {
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+  }
+  
+  .appointmentStatus {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .statusConfirmed {
+    background-color: #ecfdf5;
+    color: #10b981;
+  }
+  
+  .statusPending {
+    background-color: #fff7ed;
+    color: #f97316;
+  }
+  
+  .statusCancelled {
+    background-color: #fef2f2;
+    color: #ef4444;
+  }
+  
+  .statusCompleted {
+    background-color: #f1f5f9;
+    color: #64748b;
+  }
+  
+  /* Medical Records specific styles */
+  .recordList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .recordItem {
+    padding: 15px;
+    border-bottom: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+  }
+  
+  .recordItem:last-child {
+    border-bottom: none;
+  }
+  
+  .recordIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: #64748b;
+    font-size: 20px;
+  }
+  
+  .recordInfo {
+    flex: 1;
+  }
+  
+  .recordTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 5px;
+  }
+  
+  .recordMeta {
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    gap: 15px;
+  }
+  
+  .recordActions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .actionButton {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .actionButton:hover {
+    color: #3b82f6;
+  }
+  
+  /* Prescription specific styles */
+  .prescriptionCard {
+    margin-bottom: 20px;
+  }
+  
+  .prescriptionHeader {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 15px;
+  }
+  
+  .prescriptionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .prescriptionDate {
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .medicationList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .medicationItem {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px dashed #eaeaea;
+  }
+  
+  .medicationItem:last-child {
+    border-bottom: none;
+  }
+  
+  .medicationName {
+    flex: 1;
+    font-weight: 500;
+    color: #1e293b;
+  }
+  
+  .medicationDosage {
+    width: 150px;
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .medicationSchedule {
+    width: 150px;
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .prescriptionFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eaeaea;
+  }
+  
+  .prescribedBy {
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .prescriptionActions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .buttonPrimary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .buttonPrimary:hover {
+    background-color: #2563eb;
+  }
+  
+  .buttonOutline {
+    background-color: transparent;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .buttonOutline:hover {
+    background-color: #eff6ff;
+  }
+  
+  /* Profile specific styles */
+  .profileCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    text-align: center;
+  }
+  
+  .profilePicture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 5px solid #eff6ff;
+  }
+  
+  .profileName {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 5px;
+  }
+  
+  .profileEmail {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0 0 20px;
+  }
+  
+  .profileDetails {
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .detailGroup {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .detailLabel {
+    width: 150px;
+    font-weight: 500;
+    color: #64748b;
+  }
+  
+  .detailValue {
+    flex: 1;
+    font-weight: 500;
+    color: #1e293b;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 70px;
+      overflow: hidden;
+    }
+    
+    .sidebarHeader {
+      padding: 0 10px 20px;
+    }
+    
+    .logo {
+      justify-content: center;
+    }
+    
+    .logoText {
+      display: none;
+    }
+    
+    .navLink {
+      padding: 12px;
+      justify-content: center;
+    }
+    
+    .navText {
+      display: none;
+    }
+    
+    .navIcon {
+      margin-right: 0;
+    }
+    
+    .mainContent {
+      margin-left: 70px;
+      padding: 20px;
+    }
+    
+    .statsGrid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .profileInfo {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .sidebar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+      z-index: 999;
+    }
+    
+    .sidebarHeader {
+      display: none;
+    }
+    
+    .navMenu {
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .navItem {
+      margin-bottom: 0;
+      flex: 1;
+    }
+    
+    .navLink {
+      padding: 10px;
+      flex-direction: column;
+      font-size: 12px;
+      text-align: center;
+    }
+    
+    .navIcon {
+      margin-right: 0;
+      margin-bottom: 5px;
+    }
+    
+    .navText {
+      display: block;
+      font-size: 10px;
+    }
+    
+    .mainContent {
+      margin-left: 0;
+      margin-bottom: 70px;
+    }
+    
+    .statsGrid {
+      grid-template-columns: 1fr;
+    }
+    
+    .appointmentDate {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .appointmentDay {
+      font-size: 18px;
+    }
+    
+    .appointmentMonth {
+      font-size: 12px;
+    }
+  }
