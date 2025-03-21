@@ -1,0 +1,329 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 24px;
+}
+
+.appointmentsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.appointmentCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 4px solid #d1d5db;
+}
+
+.appointmentCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.appointmentCard.confirmed {
+  border-left-color: #10b981;
+}
+
+.appointmentCard.scheduled,
+.appointmentCard.pending {
+  border-left-color: #3b82f6;
+}
+
+.appointmentCard.completed {
+  border-left-color: #14b8a6;
+}
+
+.appointmentCard.cancelled {
+  border-left-color: #ef4444;
+}
+
+.appointmentCard.no-show {
+  border-left-color: #f59e0b;
+}
+
+.patientInfo {
+  margin-bottom: 12px;
+}
+
+.patientInfo h3 {
+  font-size: 1.1rem;
+  margin: 0 0 4px 0;
+  color: #1f2937;
+}
+
+.appointmentTime {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.appointmentStatus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusBadge, .reasonBadge, .virtualBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statusBadge {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.confirmed .statusBadge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.scheduled .statusBadge,
+.pending .statusBadge {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.completed .statusBadge {
+  background-color: #ccfbf1;
+  color: #0f766e;
+}
+
+.cancelled .statusBadge {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.no-show .statusBadge {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.reasonBadge {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.virtualBadge {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+
+.detailView {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.backButton {
+  background-color: transparent;
+  border: none;
+  color: #3b82f6;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
+
+.appointmentDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appointmentDetail h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.appointmentDetail h3 {
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.appointmentDetail p {
+  margin: 6px 0;
+  color: #4b5563;
+}
+
+.appointmentDetail ul {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.appointmentDetail li {
+  margin-bottom: 4px;
+}
+
+.notesSection {
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.notesInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  resize: vertical;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+.notesInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.saveButton {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background-color 0.2s;
+}
+
+.saveButton:hover {
+  background-color: #2563eb;
+}
+
+.statusActions {
+  margin-top: 16px;
+}
+
+.statusButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.statusButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.statusButton:hover {
+  opacity: 0.9;
+}
+
+.statusButton.confirmed {
+  background-color: #10b981;
+  color: white;
+}
+
+.statusButton.completed {
+  background-color: #14b8a6;
+  color: white;
+}
+
+.statusButton.cancelled {
+  background-color: #ef4444;
+  color: white;
+}
+
+.statusButton.noShow {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.virtualMeeting {
+  margin-top: 16px;
+}
+
+.meetingLink {
+  display: inline-block;
+  background-color: #4f46e5;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.meetingLink:hover {
+  background-color: #4338ca;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #ef4444;
+  font-size: 1rem;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.noAppointments {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #6b7280;
+  font-style: italic;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .appointmentsList {
+    grid-template-columns: 1fr;
+  }
+  
+  .statusButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .detailView {
+    padding: 16px;
+  }
+}

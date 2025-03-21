@@ -12,6 +12,18 @@ export const api = axios.create({
   },
 });
 
+// Function to apply auth token to axios instance
+const applyAuthToken = (token) => {
+  if (token) {
+    // Apply to both header formats to ensure compatibility
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers.common['x-auth-token'] = token;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['x-auth-token'];
+  }
+};
+
 // Setup axios interceptor for token refresh
 api.interceptors.response.use(
   (response) => response,
@@ -23,28 +35,43 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       
       try {
+        // Check if there is a token before attempting to refresh
+        const currentToken = localStorage.getItem('token');
+        if (!currentToken) {
+          throw new Error('No token available to refresh');
+        }
+        
         // Try to refresh the token
-        const refreshResponse = await api.post('/users/refresh-token');
+        const refreshResponse = await axios.post(`${API_BASE_URL}/users/refresh-token`, {}, {
+          headers: {
+            'Authorization': `Bearer ${currentToken}`,
+            'x-auth-token': currentToken
+          }
+        });
+        
         const { token } = refreshResponse.data;
         
         // Update token in localStorage
         localStorage.setItem('token', token);
         
         // Update authorization header
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        applyAuthToken(token);
+        
+        // Update headers in the original request
         originalRequest.headers['Authorization'] = `Bearer ${token}`;
+        originalRequest.headers['x-auth-token'] = token;
         
         // Retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, redirect to login
         console.error('Token refresh failed:', refreshError);
         
         // Clear auth data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('userRole');
         
-        // Redirect will be handled by the component
+        // Return a rejected promise to trigger the sign-out process
         return Promise.reject(refreshError);
       }
     }
@@ -61,22 +88,32 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
     // Check if user is logged in from localStorage
     const checkAuthStatus = () => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
+      const storedRole = localStorage.getItem('userRole');
       
       if (storedToken && storedUser) {
-        const user = JSON.parse(storedUser);
-        setCurrentUser(user);
-        setUserRole(user.role);
-        setToken(storedToken);
-        
-        // Set authorization header for all future requests
-        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        try {
+          const user = JSON.parse(storedUser);
+          setCurrentUser(user);
+          // Make sure we set role from user object if available, or from separate storage
+          setUserRole(user.role || storedRole);
+          setToken(storedToken);
+          
+          // Apply token to axios instance
+          applyAuthToken(storedToken);
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
+          // Clear potentially corrupted data
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+        }
       }
       
       setLoading(false);
@@ -85,28 +122,37 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Effect to update axios headers whenever token changes
+  useEffect(() => {
+    applyAuthToken(token);
+  }, [token]);
+
   // Sign in function
   const signIn = async (email, password) => {
     try {
-      const response = await api.post('/users/login', { email, password });
+      const response = await axios.post(`${API_BASE_URL}/users/login`, { email, password });
       
       const { token, user } = response.data;
+      
+      // Make sure we have the role, either from user object or separate field
+      const role = user.role || response.data.role;
       
       // Store token and user in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('userRole', role);
       
       // Set user in state
       setCurrentUser(user);
-      setUserRole(user.role);
+      setUserRole(role);
       setToken(token);
       
       // Set authorization header for future requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      applyAuthToken(token);
       
       return { success: true, user };
     } catch (error) {
+      console.error("Login error:", error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to sign in' 
@@ -133,25 +179,26 @@ export const AuthProvider = ({ children }) => {
         formattedData.licenseNumber = userData.licenseNumber;
       }
       
-      const response = await api.post('/users/register', formattedData);
+      const response = await axios.post(`${API_BASE_URL}/users/register`, formattedData);
       
       const { token, user } = response.data;
       
       // Store token and user in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('userRole', user.role || role);
       
       // Set user in state
       setCurrentUser(user);
-      setUserRole(user.role);
+      setUserRole(user.role || role);
       setToken(token);
       
       // Set authorization header for future requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      applyAuthToken(token);
       
       return { success: true, user, token };
     } catch (error) {
+      console.error("Signup error:", error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to sign up' 
@@ -169,17 +216,25 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userRole');
     
     // Remove authorization header
-    delete api.defaults.headers.common['Authorization'];
+    applyAuthToken(null);
   };
 
   // Get current auth token
   const getToken = () => {
+    // First check state, then fallback to localStorage
     return token || localStorage.getItem('token');
+  };
+  
+  // Get current user role
+  const getUserRole = () => {
+    // First check state, then fallback to localStorage
+    return userRole || localStorage.getItem('userRole');
   };
 
   const value = {
     currentUser,
     userRole,
+    getUserRole,
     token,
     getToken,
     signIn,

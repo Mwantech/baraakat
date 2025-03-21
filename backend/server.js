@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db");
 const userRoutes = require("./routes/user");
+const appointmentRoutes = require("./routes/appointments");
 
 const app = express();
 
@@ -15,6 +16,7 @@ connectDB();
 
 // API Routes
 app.use("/api/users", userRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 
 // Root Route
@@ -22,6 +24,16 @@ app.get("/", (req, res) => {
     res.send("API is running...");
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: process.env.NODE_ENV === 'production' ? {} : err
+    });
+  });
+  
 // Start Server
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, "0.0.0.0", () => {

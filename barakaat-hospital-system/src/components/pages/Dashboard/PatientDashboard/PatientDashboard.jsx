@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import styles from './PatientDashboard.module.css';
 import Header from '../../../common/Header/Header';
 
@@ -50,6 +50,9 @@ const PatientDashboard = () => {
     }
   ];
 
+  // Check if we're on exactly the dashboard/patient route (not a sub-route)
+  const isExactDashboard = location.pathname === '/dashboard/patient';
+
   return (
     <div className={styles.dashboardContainer}>
       {/* Import the Header component at the top level */}
@@ -65,31 +68,31 @@ const PatientDashboard = () => {
         </div>
         <ul className={styles.navMenu}>
           <li className={styles.navItem}>
-            <Link to="/dashboard" className={`${styles.navLink} ${location.pathname === '/dashboard' ? styles.navLinkActive : ''}`}>
+            <Link to="/dashboard/patient" className={`${styles.navLink} ${isExactDashboard ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaHome /></span>
               <span className={styles.navText}>Dashboard</span>
             </Link>
           </li>
           <li className={styles.navItem}>
-            <Link to="/dashboard/appointments" className={`${styles.navLink} ${location.pathname === '/dashboard/appointments' ? styles.navLinkActive : ''}`}>
+            <Link to="/dashboard/patient/appointments" className={`${styles.navLink} ${location.pathname.includes('/dashboard/patient/appointments') ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaCalendarAlt /></span>
               <span className={styles.navText}>Appointments</span>
             </Link>
           </li>
           <li className={styles.navItem}>
-            <Link to="/dashboard/medical-records" className={`${styles.navLink} ${location.pathname === '/dashboard/medical-records' ? styles.navLinkActive : ''}`}>
+            <Link to="/dashboard/patient/medical-records" className={`${styles.navLink} ${location.pathname.includes('/dashboard/patient/medical-records') ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaFileAlt /></span>
               <span className={styles.navText}>Medical Records</span>
             </Link>
           </li>
           <li className={styles.navItem}>
-            <Link to="/dashboard/prescriptions" className={`${styles.navLink} ${location.pathname === '/dashboard/prescriptions' ? styles.navLinkActive : ''}`}>
+            <Link to="/dashboard/patient/prescriptions" className={`${styles.navLink} ${location.pathname.includes('/dashboard/patient/prescriptions') ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaPrescriptionBottleAlt /></span>
               <span className={styles.navText}>Prescriptions</span>
             </Link>
           </li>
           <li className={styles.navItem}>
-            <Link to="/dashboard/profile" className={`${styles.navLink} ${location.pathname === '/dashboard/profile' ? styles.navLinkActive : ''}`}>
+            <Link to="/dashboard/patient/profile" className={`${styles.navLink} ${location.pathname.includes('/dashboard/patient/profile') ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaUserAlt /></span>
               <span className={styles.navText}>My Profile</span>
             </Link>
@@ -99,83 +102,90 @@ const PatientDashboard = () => {
 
       {/* Main Content */}
       <main className={styles.mainContent}>
-        <div className={styles.contentHeader}>
-          <h1 className={styles.pageTitle}>Patient Dashboard</h1>
-          <div className={styles.userActions}>
-            <div className={styles.notificationBadge}>
-              <FaBell className={styles.notificationIcon} />
-              {notifications > 0 && <span className={styles.badge}>{notifications}</span>}
-            </div>
-            <div className={styles.userProfile}>
-              <img 
-                src="https://i.pravatar.cc/150?img=12" 
-                alt="Profile" 
-                className={styles.profileAvatar} 
-              />
-              <div className={styles.profileInfo}>
-                <span className={styles.profileName}>John Doe</span>
-                <span className={styles.profileRole}>Patient</span>
+        {isExactDashboard ? (
+          <>
+            <div className={styles.contentHeader}>
+              <h1 className={styles.pageTitle}>Patient Dashboard</h1>
+              <div className={styles.userActions}>
+                <div className={styles.notificationBadge}>
+                  <FaBell className={styles.notificationIcon} />
+                  {notifications > 0 && <span className={styles.badge}>{notifications}</span>}
+                </div>
+                <div className={styles.userProfile}>
+                  <img 
+                    src="https://i.pravatar.cc/150?img=12" 
+                    alt="Profile" 
+                    className={styles.profileAvatar} 
+                  />
+                  <div className={styles.profileInfo}>
+                    <span className={styles.profileName}>John Doe</span>
+                    <span className={styles.profileRole}>Patient</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Stats Section */}
-        <div className={styles.statsGrid}>
-          {stats.map(stat => (
-            <div key={stat.id} className={styles.statCard}>
-              <div className={`${styles.statIcon} ${styles[stat.color]}`}>
-                {stat.icon}
-              </div>
-              <div className={styles.statContent}>
-                <h3 className={styles.statValue}>{stat.value}</h3>
-                <p className={styles.statLabel}>{stat.label}</p>
-              </div>
+            {/* Stats Section */}
+            <div className={styles.statsGrid}>
+              {stats.map(stat => (
+                <div key={stat.id} className={styles.statCard}>
+                  <div className={`${styles.statIcon} ${styles[stat.color]}`}>
+                    {stat.icon}
+                  </div>
+                  <div className={styles.statContent}>
+                    <h3 className={styles.statValue}>{stat.value}</h3>
+                    <p className={styles.statLabel}>{stat.label}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Main Dashboard Content */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Upcoming Appointments</h2>
-            <Link to="/dashboard/appointments" className={styles.cardAction}>View All</Link>
-          </div>
-          
-          {upcomingAppointments.map(appointment => (
-            <div key={appointment.id} className={styles.appointmentItem}>
-              <div className={styles.appointmentDate}>
-                <span className={styles.appointmentDay}>{appointment.day}</span>
-                <span className={styles.appointmentMonth}>{appointment.month}</span>
+            {/* Main Dashboard Content */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Upcoming Appointments</h2>
+                <Link to="/dashboard/patient/appointments" className={styles.cardAction}>View All</Link>
               </div>
-              <div className={styles.appointmentInfo}>
-                <h3 className={styles.appointmentTitle}>{appointment.title}</h3>
-                <p className={styles.appointmentDoctor}>
-                  <FaUserMd style={{ marginRight: '5px' }} />
-                  {appointment.doctor}
-                </p>
-                <p className={styles.appointmentTime}>
-                  <FaClock style={{ marginRight: '5px' }} />
-                  {appointment.time}
-                </p>
-              </div>
-              <div>
-                <span className={`${styles.appointmentStatus} ${styles[`status${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`]}`}>
-                  {appointment.status === 'confirmed' && <FaCheck style={{ marginRight: '5px' }} />}
-                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                </span>
-              </div>
+              
+              {upcomingAppointments.map(appointment => (
+                <div key={appointment.id} className={styles.appointmentItem}>
+                  <div className={styles.appointmentDate}>
+                    <span className={styles.appointmentDay}>{appointment.day}</span>
+                    <span className={styles.appointmentMonth}>{appointment.month}</span>
+                  </div>
+                  <div className={styles.appointmentInfo}>
+                    <h3 className={styles.appointmentTitle}>{appointment.title}</h3>
+                    <p className={styles.appointmentDoctor}>
+                      <FaUserMd style={{ marginRight: '5px' }} />
+                      {appointment.doctor}
+                    </p>
+                    <p className={styles.appointmentTime}>
+                      <FaClock style={{ marginRight: '5px' }} />
+                      {appointment.time}
+                    </p>
+                  </div>
+                  <div>
+                    <span className={`${styles.appointmentStatus} ${styles[`status${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`]}`}>
+                      {appointment.status === 'confirmed' && <FaCheck style={{ marginRight: '5px' }} />}
+                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Recent Medical Activity</h2>
-          </div>
-          <p>Your recent lab results have been uploaded. Please check your medical records.</p>
-          <button className={styles.buttonPrimary}>View Records</button>
-        </div>
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Recent Medical Activity</h2>
+              </div>
+              <p>Your recent lab results have been uploaded. Please check your medical records.</p>
+              <button className={styles.buttonPrimary}>View Records</button>
+            </div>
+          </>
+        ) : (
+          // Render the child routes (Appointments, Medical Records, etc.)
+          <Outlet />
+        )}
       </main>
     </div>
   );

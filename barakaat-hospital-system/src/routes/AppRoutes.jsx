@@ -18,6 +18,7 @@ import ResetPassword from '../components/auth/ResetPassword/ResetPassword.jsx';
 // Import patient dashboard components
 import PatientDashboard from '../components/pages/Dashboard/PatientDashboard/PatientDashboard';
 import PatientAppointments from '../components/pages/Dashboard/PatientDashboard/PatientAppointment/PatientAppointment';
+import AppointmentBooking from '../components/pages/Dashboard/PatientDashboard/BookingAppointments/BookingAppointment.jsx'
 import PatientMedicalRecords from '../components/pages/Dashboard/PatientDashboard/PatientMedicalRecords/PatientMedicalRecords';
 import PatientPrescriptions from '../components/pages/Dashboard/PatientDashboard/PatientPrescriptions/PatientPrescriptions';
 import PatientProfile from '../components/pages/Dashboard/PatientDashboard/PatientProfile/PatientProfile';
@@ -108,6 +109,7 @@ const AppRoutes = () => {
         } 
       >
         <Route index element={<Navigate to="/dashboard/patient/appointments" replace />} />
+        <Route path="booking-appointment" element={<AppointmentBooking />} />
         <Route path="appointments" element={<PatientAppointments />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
         <Route path="prescriptions" element={<PatientPrescriptions />} />
