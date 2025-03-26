@@ -14,6 +14,7 @@ import {
   FaHospital,
   FaUserMd,
   FaClock,
+  FaRobot,
   FaCheck
 } from 'react-icons/fa';
 
@@ -79,6 +80,22 @@ const PatientDashboard = () => {
               <span className={styles.navText}>Appointments</span>
             </Link>
           </li>
+          <li className={styles.navItem}>
+            <Link
+              to="/dashboard/patient/chatbot"
+              className={`${styles.navLink} ${
+                location.pathname.includes('/dashboard/patient/chatbot')
+                  ? styles.navLinkActive
+                  : ''
+              }`}
+            >
+              <span className={styles.navIcon}>
+                <FaRobot />
+              </span>
+              <span className={styles.navText}>Chatbot</span>
+            </Link>
+          </li>
+
           <li className={styles.navItem}>
             <Link to="/dashboard/patient/medical-records" className={`${styles.navLink} ${location.pathname.includes('/dashboard/patient/medical-records') ? styles.navLinkActive : ''}`}>
               <span className={styles.navIcon}><FaFileAlt /></span>

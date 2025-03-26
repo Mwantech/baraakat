@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./db");
 const userRoutes = require("./routes/user");
 const appointmentRoutes = require("./routes/appointments");
+const profileRoutes = require("./routes/profileRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ connectDB();
 // API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/profiles", profileRoutes);
 
 
 // Root Route

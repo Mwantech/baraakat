@@ -22,6 +22,7 @@ import AppointmentBooking from '../components/pages/Dashboard/PatientDashboard/B
 import PatientMedicalRecords from '../components/pages/Dashboard/PatientDashboard/PatientMedicalRecords/PatientMedicalRecords';
 import PatientPrescriptions from '../components/pages/Dashboard/PatientDashboard/PatientPrescriptions/PatientPrescriptions';
 import PatientProfile from '../components/pages/Dashboard/PatientDashboard/PatientProfile/PatientProfile';
+import PatientChatbot from '../components/pages/Dashboard/PatientDashboard/PatientChatbot/Chatbot.jsx';
 
 // Import doctor dashboard components
 import DoctorDashboard from '../components/pages/Dashboard/DoctorDashboard/DoctorDashboard';
@@ -111,6 +112,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/dashboard/patient/appointments" replace />} />
         <Route path="booking-appointment" element={<AppointmentBooking />} />
         <Route path="appointments" element={<PatientAppointments />} />
+        <Route path="chatbot" element={<PatientChatbot />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
         <Route path="prescriptions" element={<PatientPrescriptions />} />
         <Route path="profile" element={<PatientProfile />} />
