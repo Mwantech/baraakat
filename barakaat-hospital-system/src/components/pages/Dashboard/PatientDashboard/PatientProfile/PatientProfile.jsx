@@ -28,17 +28,19 @@ const PatientProfile = () => {
     }
   });
 
-  // Fetch patient profile
+  // Fetch patient profile when a user is logged in and is a patient
   useEffect(() => {
     const fetchPatientProfile = async () => {
       try {
-        const response = await api.get('/profiles/patients-profile');
+        const response = await api.get('/patients-profile/');
         setProfile(response.data);
         
         // Populate form data if profile exists
         if (response.data) {
           setFormData({
-            dateOfBirth: response.data.dateOfBirth ? new Date(response.data.dateOfBirth).toISOString().split('T')[0] : '',
+            dateOfBirth: response.data.dateOfBirth
+              ? new Date(response.data.dateOfBirth).toISOString().split('T')[0]
+              : '',
             gender: response.data.gender || '',
             bloodGroup: response.data.bloodGroup || '',
             address: response.data.address || {
@@ -55,19 +57,20 @@ const PatientProfile = () => {
             }
           });
         }
-        
-        setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch patient profile');
+      } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch if user is a patient
-    if (getUserRole() === 'patient') {
+    if (currentUser && getUserRole() === 'patient') {
       fetchPatientProfile();
+    } else {
+      // If no user is logged in or user is not a patient, stop loading
+      setLoading(false);
     }
-  }, [getUserRole]);
+  }, [currentUser, getUserRole]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -106,7 +109,7 @@ const PatientProfile = () => {
     setLoading(true);
 
     try {
-      const response = await api.put('/profiles/patients-profile', formData);
+      const response = await api.put('/patients-profile/', formData);
       setProfile(response.data);
       setIsEditing(false);
       setError(null);
@@ -159,11 +162,7 @@ const PatientProfile = () => {
             <div className={styles.profileInfoItem}>
               <span className={styles.infoLabel}>Address:</span>
               <p>
-                {profile.address.street}, 
-                {profile.address.city}, 
-                {profile.address.state} 
-                {profile.address.zipCode}
-                {profile.address.country}
+                {profile.address.street}, {profile.address.city}, {profile.address.state} {profile.address.zipCode} {profile.address.country}
               </p>
             </div>
           )}
@@ -172,9 +171,7 @@ const PatientProfile = () => {
             <div className={styles.profileInfoItem}>
               <span className={styles.infoLabel}>Emergency Contact:</span>
               <p>
-                {profile.emergencyContact.name} 
-                ({profile.emergencyContact.relationship})
-                {profile.emergencyContact.phone}
+                {profile.emergencyContact.name} ({profile.emergencyContact.relationship}) {profile.emergencyContact.phone}
               </p>
             </div>
           )}

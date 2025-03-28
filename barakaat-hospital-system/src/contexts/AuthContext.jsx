@@ -42,7 +42,7 @@ api.interceptors.response.use(
         }
         
         // Try to refresh the token
-        const refreshResponse = await axios.post(`${API_BASE_URL}/users/refresh-token`, {}, {
+        const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
           headers: {
             'Authorization': `Bearer ${currentToken}`,
             'x-auth-token': currentToken

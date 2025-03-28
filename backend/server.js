@@ -4,7 +4,9 @@ const cors = require("cors");
 const connectDB = require("./db");
 const userRoutes = require("./routes/user");
 const appointmentRoutes = require("./routes/appointments");
-const profileRoutes = require("./routes/profileRoutes");
+const doctorProfile = require("./routes/doctorsProfile");
+const patientProfile = require("./routes/patientsProfile");
+const refreshTokenRoutes = require('./routes/refreshtoken');
 
 const app = express();
 
@@ -18,7 +20,9 @@ connectDB();
 // API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
-app.use("/api/profiles", profileRoutes);
+app.use("/api/doctors-profile", doctorProfile);
+app.use("/api/patients-profile", patientProfile);
+app.use('/api/auth', refreshTokenRoutes);
 
 
 // Root Route
