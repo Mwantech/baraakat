@@ -1,0 +1,136 @@
+/* components/AdminDoctors/AdminDoctors.module.css */
+
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .loading, 
+  .error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+  }
+  
+  .error {
+    color: #e74c3c;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+  }
+  
+  .table th,
+  .table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ecf0f1;
+  }
+  
+  .table th {
+    background-color: #3498db;
+    color: white;
+    font-weight: 600;
+  }
+  
+  .table tr:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .verified {
+    color: #27ae60;
+    font-weight: 600;
+  }
+  
+  .unverified {
+    color: #e67e22;
+    font-weight: 600;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  
+  .button:hover {
+    transform: translateY(-1px);
+  }
+  
+  .approve {
+    background-color: #2ecc71;
+    color: white;
+  }
+  
+  .approve:hover {
+    background-color: #27ae60;
+  }
+  
+  .view {
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+  
+  .view:hover {
+    background-color: #2980b9;
+  }
+  
+  .delete {
+    background-color: #e74c3c;
+    color: white;
+  }
+  
+  .delete:hover {
+    background-color: #c0392b;
+  }
+  
+  .noDoctors {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+    }
+    
+    .table th,
+    .table td {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
+  }

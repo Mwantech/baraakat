@@ -8,17 +8,11 @@ const PatientSchema = new mongoose.Schema({
     required: true
   },
   dateOfBirth: {
-    type: Date,
-    required: true
+    type: Date
   },
   gender: {
     type: String,
-    enum: ['male', 'female', 'other'],
-    required: true
-  },
-  bloodGroup: {
-    type: String,
-    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+    enum: ['male', 'female', 'other']
   },
   address: {
     street: String,
@@ -27,19 +21,22 @@ const PatientSchema = new mongoose.Schema({
     zipCode: String,
     country: String
   },
+  bloodGroup: {
+    type: String,
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+  },
+  allergies: [String],
+  medicalHistory: [{
+    condition: String,
+    diagnosedDate: Date,
+    notes: String,
+    medications: [String]
+  }],
   emergencyContact: {
     name: String,
     relationship: String,
     phone: String
   },
-  allergies: [{
-    type: String
-  }],
-  medicalHistory: [{
-    condition: String,
-    diagnosedDate: Date,
-    notes: String
-  }],
   insurance: {
     provider: String,
     policyNumber: String,

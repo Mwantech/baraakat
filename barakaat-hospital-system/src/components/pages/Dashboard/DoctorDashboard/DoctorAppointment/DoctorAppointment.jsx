@@ -4,17 +4,25 @@ import styles from './DoctorAppointment.module.css';
 import { useAuth, API_BASE_URL } from '../../../../../contexts/AuthContext';
 
 export const DoctorAppointment = () => {
-  const { getToken, userRole, getUserRole } = useAuth();
+  const { getToken, currentUser, getUserRole } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  
+  // Use id instead of _id based on your currentUser structure
+  const doctorId = currentUser?.id;
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         setLoading(true);
+        console.log("Current user:", currentUser);
         console.log("Current user role:", getUserRole());
+        
+        if (!doctorId) {
+          throw new Error("Doctor ID not found. Please ensure you're logged in as a doctor.");
+        }
         
         // Get token
         const token = getToken();
@@ -22,8 +30,10 @@ export const DoctorAppointment = () => {
           throw new Error("Authentication token not found");
         }
         
+        console.log("Fetching appointments for doctor ID:", doctorId);
+        
         // Updated endpoint to match our controller
-        const response = await axios.get(`${API_BASE_URL}/appointments/doctor`, {
+        const response = await axios.get(`${API_BASE_URL}/appointments/doctor/${doctorId}`, {
           headers: {
             'x-auth-token': token
           }
@@ -36,8 +46,10 @@ export const DoctorAppointment = () => {
         // Map the response data to match the component's expected structure
         const formattedAppointments = response.data.data.map(app => ({
           _id: app._id,
-          patientName: `${app.patient.firstName} ${app.patient.lastName}`,
-          appointmentDate: app.scheduledDate,
+          patientName: app.patient?.user ? 
+            `${app.patient.user.firstName} ${app.patient.user.lastName}` : 
+            "Patient Name Not Available",
+          appointmentDate: app.appointmentDate || app.scheduledDate,
           startTime: app.startTime,
           endTime: app.endTime,
           reason: app.reason,
@@ -58,8 +70,15 @@ export const DoctorAppointment = () => {
       }
     };
   
-    fetchAppointments();
-  }, [getToken, getUserRole]);
+    // Only fetch appointments if we have a doctorId
+    if (doctorId) {
+      fetchAppointments();
+    } else {
+      console.error("Doctor ID not found. Current user:", currentUser);
+      setError("Doctor ID not found. Please ensure you're logged in as a doctor.");
+      setLoading(false);
+    }
+  }, [getToken, getUserRole, doctorId, currentUser]);
 
   const handleStatusUpdate = async (id, status) => {
     try {

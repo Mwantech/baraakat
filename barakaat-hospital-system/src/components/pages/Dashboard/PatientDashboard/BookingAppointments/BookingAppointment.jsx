@@ -9,12 +9,13 @@ import {
   FaMapMarkerAlt,
   FaVideo,
   FaClinicMedical,
-  FaChevronRight
+  FaChevronRight,
+  FaCheckCircle
 } from 'react-icons/fa';
 import { useAuth, API_BASE_URL } from '../../../../../contexts/AuthContext';
 
 const AppointmentBooking = () => {
-  const { getToken } = useAuth();
+  const { getToken, user } = useAuth();
   const navigate = useNavigate();
   
   const [doctors, setDoctors] = useState([]);
@@ -24,15 +25,16 @@ const AppointmentBooking = () => {
   const [currentStep, setCurrentStep] = useState(1);
   
   const [appointmentData, setAppointmentData] = useState({
+    patientId: '',
     doctorId: '',
-    scheduledDate: '',
+    appointmentDate: '',
     startTime: '',
     endTime: '',
     appointmentType: 'General Checkup',
-    reason: '',
     symptoms: [],
+    notes: '',
     isVirtual: false,
-    notes: ''
+    reason: ''
   });
   
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -42,7 +44,14 @@ const AppointmentBooking = () => {
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+    // Set patientId from authenticated user if available
+    if (user && user._id) {
+      setAppointmentData(prevData => ({
+        ...prevData,
+        patientId: user._id
+      }));
+    }
+  }, [user]);
 
   const fetchDoctors = async () => {
     try {
@@ -53,7 +62,7 @@ const AppointmentBooking = () => {
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/users/doctors`, {
+      const response = await axios.get(`${API_BASE_URL}/auth/doctors/`, {
         headers: {
           'x-auth-token': token
         }
@@ -112,7 +121,7 @@ const AppointmentBooking = () => {
   const handleDateSelect = (date) => {
     setAppointmentData({
       ...appointmentData,
-      scheduledDate: date
+      appointmentDate: date // Changed from scheduledDate to appointmentDate
     });
     fetchAvailableSlots(appointmentData.doctorId, date);
     setCurrentStep(3);
@@ -164,9 +173,21 @@ const AppointmentBooking = () => {
         return;
       }
 
+      // Prepare submission data to match controller expectations
+      const submissionData = {
+        patientId: appointmentData.patientId,
+        doctorId: appointmentData.doctorId,
+        appointmentDate: appointmentData.appointmentDate,
+        startTime: appointmentData.startTime,
+        endTime: appointmentData.endTime,
+        symptoms: appointmentData.symptoms,
+        notes: appointmentData.notes + (appointmentData.isVirtual ? "\nVirtual Appointment" : "\nIn-person Appointment") +
+              (appointmentData.reason ? `\nReason: ${appointmentData.reason}` : "")
+      };
+
       const response = await axios.post(
         `${API_BASE_URL}/appointments`,
-        appointmentData,
+        submissionData,
         {
           headers: {
             'x-auth-token': token,
@@ -210,8 +231,9 @@ const AppointmentBooking = () => {
               </div>
               <div className={styles.doctorInfo}>
                 <h4>Dr. {doctor.firstName} {doctor.lastName}</h4>
-                <p>{doctor.specialty || 'General Practitioner'}</p>
+                <p>{doctor.specialty || doctor.specialization || 'General Practitioner'}</p>
                 <p className={styles.experience}>{doctor.experience || '5+ years'} experience</p>
+                {doctor.fees && <p className={styles.fees}>Fee: ${doctor.fees}</p>}
               </div>
               <div className={styles.selectDoctor}>
                 <FaChevronRight />
@@ -287,7 +309,7 @@ const AppointmentBooking = () => {
         <h3 className={styles.stepTitle}>Select a Time</h3>
         <p className={styles.dateSelected}>
           <FaCalendarAlt style={{ marginRight: '5px' }} />
-          {new Date(appointmentData.scheduledDate).toLocaleDateString('en-US', {
+          {new Date(appointmentData.appointmentDate).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -336,13 +358,13 @@ const AppointmentBooking = () => {
           <div className={styles.summaryItem}>
             <FaUserMd style={{ marginRight: '5px' }} />
             <span>
-              Dr. {selectedDoctor.firstName} {selectedDoctor.lastName} - {selectedDoctor.specialty || 'General Practitioner'}
+              Dr. {selectedDoctor.firstName} {selectedDoctor.lastName} - {selectedDoctor.specialty || selectedDoctor.specialization || 'General Practitioner'}
             </span>
           </div>
           <div className={styles.summaryItem}>
             <FaCalendarAlt style={{ marginRight: '5px' }} />
             <span>
-              {new Date(appointmentData.scheduledDate).toLocaleDateString('en-US', {
+              {new Date(appointmentData.appointmentDate).toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -356,6 +378,13 @@ const AppointmentBooking = () => {
               {appointmentData.startTime} - {appointmentData.endTime}
             </span>
           </div>
+          {selectedDoctor.fees && (
+            <div className={styles.summaryItem}>
+              <span className={styles.fees}>
+                Fee: ${selectedDoctor.fees}
+              </span>
+            </div>
+          )}
         </div>
         
         <form onSubmit={handleSubmit} className={styles.appointmentForm}>

@@ -1,24 +1,73 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import { useAuth } from '../../../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { useAuth, api } from '../../../../contexts/AuthContext';
 import Header from '../../../common/Header/Header';
 import styles from './AdminDashboard.module.css';
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
+  const location = useLocation();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // State to hold the fetched dashboard data
+  const [dashboardData, setDashboardData] = useState({
+    totalUsers: 0,
+    totalDoctors: 0,
+    totalPatients: 0,
+  });
   
-  // Simple stats for dashboard overview
+  // Fetch dashboard data from the backend using the api instance from AuthContext
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await api.get('/admin/dashboard');
+        const { totalUsers, totalDoctors, totalPatients } = response.data;
+        setDashboardData({ totalUsers, totalDoctors, totalPatients });
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+  
+  // Update the stats array based on the fetched dashboardData
   const stats = [
-    { title: 'Total Users', value: '1,285', change: '+12%', icon: '👥', color: '#3b82f6' },
-    { title: 'Active Doctors', value: '73', change: '+5%', icon: '👨‍⚕️', color: '#10b981' },
-    { title: 'Registered Patients', value: '1,156', change: '+15%', icon: '🧑‍⚕️', color: '#f59e0b' },
-    { title: 'Open Reports', value: '24', change: '-8%', icon: '📊', color: '#ef4444' },
+    { 
+      title: 'Total Users', 
+      value: dashboardData.totalUsers.toLocaleString(), 
+      change: '+12%', 
+      icon: '👥', 
+      color: '#3b82f6' 
+    },
+    { 
+      title: 'Active Doctors', 
+      value: dashboardData.totalDoctors.toLocaleString(), 
+      change: '+5%', 
+      icon: '👨‍⚕️', 
+      color: '#10b981' 
+    },
+    { 
+      title: 'Registered Patients', 
+      value: dashboardData.totalPatients.toLocaleString(), 
+      change: '+15%', 
+      icon: '🧑‍⚕️', 
+      color: '#f59e0b' 
+    },
+    { 
+      title: 'Open Reports', 
+      value: '24', 
+      change: '-8%', 
+      icon: '📊', 
+      color: '#ef4444' 
+    },
   ];
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!isSidebarCollapsed);
   };
+
+  // Check if we're on the exact admin dashboard route
+  const isExactDashboard = location.pathname === '/dashboard/admin';
 
   return (
     <div className={styles.dashboardContainer}>
@@ -52,14 +101,17 @@ const AdminDashboard = () => {
           
           <nav className={styles.sidebarNav}>
             <NavLink 
-              to="/dashboard/admin/users" 
+              to="/dashboard/admin" 
               className={({ isActive }) => 
-                isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                isExactDashboard ? `${styles.navLink} ${styles.active}` : styles.navLink
               }
+              end
             >
-              <span className={styles.icon}>👥</span>
-              {!isSidebarCollapsed && <span>Users</span>}
+              <span className={styles.icon}>📊</span>
+              {!isSidebarCollapsed && <span>Dashboard</span>}
             </NavLink>
+            
+            
             
             <NavLink 
               to="/dashboard/admin/doctors" 
@@ -77,8 +129,8 @@ const AdminDashboard = () => {
                 isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
               }
             >
-              <span className={styles.icon}>🧑‍⚕️</span>
-              {!isSidebarCollapsed && <span>Patients</span>}
+              <span className={styles.icon}>🧑</span>
+              {!isSidebarCollapsed && <span>Admins</span>}
             </NavLink>
             
             <NavLink 
@@ -128,27 +180,31 @@ const AdminDashboard = () => {
             </div>
           </div>
           
-          {/* Stats Cards (Only shown on the main admin page) */}
-          {window.location.pathname === '/dashboard/admin' && (
-            <div className={styles.statsGrid}>
-              {stats.map((stat, index) => (
-                <div key={index} className={styles.statCard} style={{ borderTopColor: stat.color }}>
-                  <div className={styles.statIcon} style={{ backgroundColor: stat.color }}>
-                    {stat.icon}
+          {isExactDashboard ? (
+            // Main dashboard content - only show on exact path
+            <>
+              {/* Stats Cards */}
+              <div className={styles.statsGrid}>
+                {stats.map((stat, index) => (
+                  <div key={index} className={styles.statCard} style={{ borderTopColor: stat.color }}>
+                    <div className={styles.statIcon} style={{ backgroundColor: stat.color }}>
+                      {stat.icon}
+                    </div>
+                    <h3>{stat.title}</h3>
+                    <div className={styles.statValue}>{stat.value}</div>
+                    <div className={styles.statChange} style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
+                      {stat.change} from last month
+                    </div>
                   </div>
-                  <h3>{stat.title}</h3>
-                  <div className={styles.statValue}>{stat.value}</div>
-                  <div className={styles.statChange} style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
-                    {stat.change} from last month
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className={styles.contentArea}>
+                ))}
+              </div>
+              
+              
+            </>
+          ) : (
+            // Child routes - Outlet will render the specific component (Users, Doctors, etc.)
             <Outlet />
-          </div>
+          )}
         </main>
       </div>
     </div>

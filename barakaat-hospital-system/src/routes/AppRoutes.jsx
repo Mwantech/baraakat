@@ -18,7 +18,7 @@ import ResetPassword from '../components/auth/ResetPassword/ResetPassword.jsx';
 // Import patient dashboard components
 import PatientDashboard from '../components/pages/Dashboard/PatientDashboard/PatientDashboard';
 import PatientAppointments from '../components/pages/Dashboard/PatientDashboard/PatientAppointment/PatientAppointment';
-import AppointmentBooking from '../components/pages/Dashboard/PatientDashboard/BookingAppointments/BookingAppointment.jsx'
+import AppointmentBooking from '../components/pages/Dashboard/PatientDashboard/BookingAppointments/BookingAppointment.jsx';
 import PatientMedicalRecords from '../components/pages/Dashboard/PatientDashboard/PatientMedicalRecords/PatientMedicalRecords';
 import PatientPrescriptions from '../components/pages/Dashboard/PatientDashboard/PatientPrescriptions/PatientPrescriptions';
 import PatientProfile from '../components/pages/Dashboard/PatientDashboard/PatientProfile/PatientProfile';

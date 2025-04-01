@@ -1,4 +1,3 @@
-
 // models/Appointment.js
 const mongoose = require('mongoose');
 
@@ -13,7 +12,7 @@ const AppointmentSchema = new mongoose.Schema({
     ref: 'Doctor',
     required: true
   },
-  scheduledDate: {
+  appointmentDate: {
     type: Date,
     required: true
   },
@@ -27,35 +26,33 @@ const AppointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['scheduled', 'confirmed', 'completed', 'cancelled', 'no-show'],
+    enum: ['scheduled', 'completed', 'cancelled', 'no-show'],
     default: 'scheduled'
   },
-  appointmentType: {
-    type: String,
-    enum: ['consultation', 'follow-up', 'emergency', 'routine-checkup', 'specialist'],
-    default: 'consultation'
+  notes: {
+    type: String
   },
-  reason: {
-    type: String,
-    required: true
+  symptoms: {
+    type: String
   },
-  notes: String,
-  symptoms: [String],
-  isVirtual: {
+  followUp: {
     type: Boolean,
     default: false
   },
-  meetingLink: String,
-  reminders: [{
-    type: Date,
-    sent: Boolean
+  prescription: [{
+    medication: String,
+    dosage: String,
+    frequency: String,
+    duration: String
   }],
-  paymentStatus: {
-    type: String,
-    enum: ['pending', 'completed', 'refunded', 'free'],
-    default: 'pending'
+  diagnosis: [String],
+  fee: {
+    type: Number
   },
-  paymentId: String
+  isPaid: {
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 const Appointment = mongoose.model('Appointment', AppointmentSchema);

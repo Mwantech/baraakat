@@ -25,36 +25,43 @@ const PatientProfile = () => {
       name: '',
       relationship: '',
       phone: ''
-    }
+    },
+    allergies: [],
+    medicalHistory: []
   });
 
   // Fetch patient profile when a user is logged in and is a patient
   useEffect(() => {
     const fetchPatientProfile = async () => {
       try {
-        const response = await api.get('/patients-profile/');
-        setProfile(response.data);
+        // Updated API endpoint to match backend controller
+        const response = await api.get('/profile/patient');
         
-        // Populate form data if profile exists
-        if (response.data) {
+        // The backend returns both user and patient data
+        if (response.data && response.data.patient) {
+          setProfile(response.data.patient);
+          
+          // Populate form data with patient profile
           setFormData({
-            dateOfBirth: response.data.dateOfBirth
-              ? new Date(response.data.dateOfBirth).toISOString().split('T')[0]
+            dateOfBirth: response.data.patient.dateOfBirth
+              ? new Date(response.data.patient.dateOfBirth).toISOString().split('T')[0]
               : '',
-            gender: response.data.gender || '',
-            bloodGroup: response.data.bloodGroup || '',
-            address: response.data.address || {
+            gender: response.data.patient.gender || '',
+            bloodGroup: response.data.patient.bloodGroup || '',
+            address: response.data.patient.address || {
               street: '',
               city: '',
               state: '',
               zipCode: '',
               country: ''
             },
-            emergencyContact: response.data.emergencyContact || {
+            emergencyContact: response.data.patient.emergencyContact || {
               name: '',
               relationship: '',
               phone: ''
-            }
+            },
+            allergies: response.data.patient.allergies || [],
+            medicalHistory: response.data.patient.medicalHistory || []
           });
         }
       } catch (err) {
@@ -95,6 +102,18 @@ const PatientProfile = () => {
           [contactField]: value
         }
       }));
+    } else if (name === 'allergies') {
+      // Handle allergies as an array
+      setFormData(prev => ({
+        ...prev,
+        allergies: value.split(',').map(a => a.trim())
+      }));
+    } else if (name === 'medicalHistory') {
+      // Handle medical history as an array
+      setFormData(prev => ({
+        ...prev,
+        medicalHistory: value.split(',').map(m => m.trim())
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -109,8 +128,13 @@ const PatientProfile = () => {
     setLoading(true);
 
     try {
-      const response = await api.put('/patients-profile/', formData);
-      setProfile(response.data);
+      // Updated API endpoint to match backend controller
+      const response = await api.put('/profile/patient', formData);
+      
+      // The backend returns both user and patient data
+      if (response.data && response.data.patient) {
+        setProfile(response.data.patient);
+      }
       setIsEditing(false);
       setError(null);
     } catch (err) {
@@ -173,6 +197,20 @@ const PatientProfile = () => {
               <p>
                 {profile.emergencyContact.name} ({profile.emergencyContact.relationship}) {profile.emergencyContact.phone}
               </p>
+            </div>
+          )}
+
+          {profile?.allergies && profile.allergies.length > 0 && (
+            <div className={styles.profileInfoItem}>
+              <span className={styles.infoLabel}>Allergies:</span>
+              <p>{profile.allergies.join(', ')}</p>
+            </div>
+          )}
+          
+          {profile?.medicalHistory && profile.medicalHistory.length > 0 && (
+            <div className={styles.profileInfoItem}>
+              <span className={styles.infoLabel}>Medical History:</span>
+              <p>{profile.medicalHistory.join(', ')}</p>
             </div>
           )}
           
@@ -306,6 +344,26 @@ const PatientProfile = () => {
               type="text"
               name="emergencyContact.phone"
               value={formData.emergencyContact.phone}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label>Allergies (comma-separated)</label>
+            <input
+              type="text"
+              name="allergies"
+              value={formData.allergies.join(', ')}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label>Medical History (comma-separated)</label>
+            <input
+              type="text"
+              name="medicalHistory"
+              value={formData.medicalHistory.join(', ')}
               onChange={handleChange}
             />
           </div>

@@ -15,7 +15,7 @@ import {
 import { useAuth, API_BASE_URL } from '../../../../../contexts/AuthContext';
 
 const PatientAppointment = () => {
-  const { getToken } = useAuth();
+  const { getToken, currentUser } = useAuth();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,78 +27,138 @@ const PatientAppointment = () => {
   });
 
   useEffect(() => {
-    fetchAppointments();
-  }, [statusFilter, dateRange]);
+    const getUserId = () => {
+      // First check if currentUser exists
+      if (currentUser) {
+        // Try to get id first (DoctorAppointment uses id instead of _id)
+        if (currentUser.id) {
+          return currentUser.id;
+        }
+        // Fall back to _id if id is not available
+        if (currentUser._id) {
+          return currentUser._id;
+        }
+      }
+      
+      // If currentUser doesn't have id or _id, try localStorage
+      try {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        return storedUser.id || storedUser._id || null;
+      } catch (err) {
+        console.error('Error parsing user data from localStorage:', err);
+        return null;
+      }
+    };
 
-  const fetchAppointments = async () => {
+    const userId = getUserId();
+    
+    if (!userId) {
+      setError('User authentication failed. Please sign in again.');
+      setLoading(false);
+      return;
+    }
+    
+    // We have the user ID, proceed with fetching appointments
+    fetchAppointments(userId);
+  }, [statusFilter, dateRange, currentUser]);
+
+  const fetchAppointments = async (userId) => {
     try {
       setLoading(true);
       const token = getToken();
+      
       if (!token) {
+        console.log('No auth token found');
         navigate('/signin');
         return;
       }
 
-      // Use the correct endpoint from our controller
-      const response = await axios.get(`${API_BASE_URL}/appointments/patient`, {
+      console.log(`Fetching appointments for user ID: ${userId}`);
+      
+      // Using the correct API endpoint with the explicit userId parameter
+      const response = await axios.get(`${API_BASE_URL}/appointments/patient/${userId}`, {
         headers: {
-          'x-auth-token': token
+          'x-auth-token': token,
+          'Authorization': `Bearer ${token}` // Include both header formats to be safe
+        },
+        params: {
+          status: statusFilter || undefined
         }
       });
 
-      if (!response.data || !response.data.success) {
-        throw new Error('Failed to fetch appointments');
+      console.log('API response:', response.data);
+
+      if (!response.data) {
+        throw new Error('No data received from server');
       }
 
-      let filteredAppointments = response.data.data;
-      
-      // Apply status filter
-      if (statusFilter) {
-        filteredAppointments = filteredAppointments.filter(app => app.status === statusFilter);
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to fetch appointments');
       }
+
+      let filteredAppointments = response.data.data || [];
       
       // Apply date range filter
       if (dateRange.startDate) {
         const startDate = new Date(dateRange.startDate);
         filteredAppointments = filteredAppointments.filter(app => 
-          new Date(app.scheduledDate) >= startDate
+          new Date(app.appointmentDate) >= startDate
         );
       }
       
       if (dateRange.endDate) {
         const endDate = new Date(dateRange.endDate);
-        endDate.setHours(23, 59, 59); // Set to end of day
+        endDate.setHours(23, 59, 59);
         filteredAppointments = filteredAppointments.filter(app => 
-          new Date(app.scheduledDate) <= endDate
+          new Date(app.appointmentDate) <= endDate
         );
       }
 
       // Transform the data to match our UI format
       const formattedAppointments = filteredAppointments.map(app => {
-        const appointmentDate = new Date(app.scheduledDate);
+        // Handle case where appointmentDate is missing or invalid
+        let appointmentDate;
+        try {
+          appointmentDate = new Date(app.appointmentDate);
+          // Check if date is valid
+          if (isNaN(appointmentDate.getTime())) {
+            throw new Error('Invalid date');
+          }
+        } catch (err) {
+          // Use current date as fallback
+          appointmentDate = new Date();
+          console.warn(`Invalid appointment date for appointment ${app._id}, using current date as fallback`);
+        }
+        
+        // Handle case where doctor might be null or undefined
+        const doctorName = app.doctor && app.doctor.user ? 
+                          `${app.doctor.user.firstName} ${app.doctor.user.lastName}` : 
+                          'Not assigned';
         
         return {
           id: app._id,
           day: appointmentDate.getDate().toString(),
           month: appointmentDate.toLocaleString('default', { month: 'short' }),
-          title: app.appointmentType,
-          doctor: `${app.doctor.firstName} ${app.doctor.lastName}`,
-          specialty: app.doctor.specialty || 'General',
-          time: `${app.startTime} - ${app.endTime}`,
-          location: app.isVirtual ? 'Virtual' : (app.doctor.location || 'Main Hospital'),
-          reason: app.reason,
-          status: app.status,
-          isVirtual: app.isVirtual,
-          meetingLink: app.meetingLink,
-          appointmentDate: app.scheduledDate
+          title: app.symptoms ? `Appointment for ${app.symptoms.split(',')[0]}...` : 'Medical Appointment',
+          doctor: doctorName,
+          specialty: app.doctor ? app.doctor.specialization || app.doctor.department || 'General' : 'Not assigned',
+          time: `${app.startTime || '00:00'} - ${app.endTime || '00:00'}`,
+          location: 'Hospital', 
+          reason: app.symptoms || 'No reason specified',
+          status: app.status || 'scheduled',
+          isVirtual: Boolean(app.meetingLink),
+          meetingLink: app.meetingLink || null,
+          appointmentDate: app.appointmentDate,
+          fee: app.fee
         };
       });
 
+      console.log('Formatted appointments:', formattedAppointments);
       setAppointments(formattedAppointments);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      setError('Failed to load appointments. Please try again later.');
+      setError(`Failed to load appointments: ${error.response?.data?.message || error.message}`);
       setLoading(false);
     }
   };
@@ -115,53 +175,46 @@ const PatientAppointment = () => {
         return;
       }
 
-      // Updated to match our controller's endpoint
-      await axios.patch(
-        `${API_BASE_URL}/appointments/${id}/status`,
-        { status: 'cancelled' },
+      // Using the correct endpoint from controller
+      const response = await axios.put(
+        `${API_BASE_URL}/appointments/${id}/cancel`,
+        { cancellationReason: 'Cancelled by patient' },
         {
           headers: {
             'x-auth-token': token,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
-      // Update the local state
-      setAppointments(prev => 
-        prev.map(app => 
-          app.id === id ? { ...app, status: 'cancelled' } : app
-        )
-      );
-
-      // Show success message or toast notification
-      alert('Appointment cancelled successfully');
+      if (response.data && response.data.success) {
+        // Update the local state
+        setAppointments(prev => 
+          prev.map(app => 
+            app.id === id ? { ...app, status: 'cancelled' } : app
+          )
+        );
+        
+        // Show success message
+        alert('Appointment cancelled successfully');
+      } else {
+        throw new Error(response.data?.message || 'Failed to cancel appointment');
+      }
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      alert('Failed to cancel appointment. Please try again.');
+      alert(`Failed to cancel appointment: ${error.response?.data?.message || error.message}`);
     }
   };
 
-  const rescheduleAppointment = async (id) => {
-    try {
-      const token = getToken();
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      // Navigate to dedicated reschedule page with appointment ID
-      navigate(`/reschedule-appointment/${id}`);
-    } catch (error) {
-      console.error('Error preparing to reschedule:', error);
-      alert('Failed to prepare for rescheduling. Please try again.');
-    }
+  const rescheduleAppointment = (id) => {
+    navigate(`/dashboard/patient/reschedule-appointment/${id}`);
   };
 
   const handleNewAppointment = () => {
     navigate('/dashboard/patient/booking-appointment');
   };
-
+  
   const handleFilterChange = (e) => {
     setStatusFilter(e.target.value);
   };
@@ -171,6 +224,10 @@ const PatientAppointment = () => {
       ...dateRange,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleSignInClick = () => {
+    navigate('/signin');
   };
 
   const getStatusIcon = (status) => {
@@ -186,7 +243,7 @@ const PatientAppointment = () => {
       case 'no-show':
         return <FaTimesCircle />;
       default:
-        return null;
+        return <FaHourglassHalf />;
     }
   };
 
@@ -214,11 +271,61 @@ const PatientAppointment = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading appointments...</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loading}>Loading appointments...</div>
+        <p className={styles.loadingSubtext}>Please wait while we fetch your appointments</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className={styles.error}>{error}</div>;
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.error}>{error}</div>
+        {error.includes('sign in') ? (
+          <button 
+            className={styles.buttonPrimary}
+            onClick={handleSignInClick}
+          >
+            Sign In
+          </button>
+        ) : (
+          <button 
+            className={styles.buttonPrimary}
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              
+              // Get user ID using the same function as in useEffect
+              const getUserId = () => {
+                if (currentUser) {
+                  return currentUser.id || currentUser._id;
+                }
+                
+                try {
+                  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                  return storedUser.id || storedUser._id || null;
+                } catch (err) {
+                  return null;
+                }
+              };
+              
+              const userId = getUserId();
+              
+              if (userId) {
+                fetchAppointments(userId);
+              } else {
+                setError('User ID not found. Please sign in again.');
+                setLoading(false);
+              }
+            }}
+          >
+            Try Again
+          </button>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -315,6 +422,11 @@ const PatientAppointment = () => {
                   <strong>Reason:</strong> {appointment.reason}
                 </p>
               )}
+              {appointment.fee && (
+                <p className={styles.appointmentFee}>
+                  <strong>Fee:</strong> ${appointment.fee}
+                </p>
+              )}
             </div>
             <div className={styles.appointmentActions}>
               <span className={`${styles.appointmentStatus} ${styles[`status${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`]}`}>
@@ -343,7 +455,7 @@ const PatientAppointment = () => {
                   </>
                 )}
                 {appointment.status === 'completed' && (
-                  <Link to={`/medical-records/${appointment.id}`} className={styles.buttonOutline}>
+                  <Link to={`/dashboard/patient/medical-records/${appointment.id}`} className={styles.buttonOutline}>
                     View Record
                   </Link>
                 )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, api} from '../../../../../contexts/AuthContext';
+import { useAuth, api } from '../../../../../contexts/AuthContext';
 import styles from './DoctorProfile.module.css';
 
 const DoctorProfile = () => {
@@ -26,21 +26,24 @@ const DoctorProfile = () => {
   useEffect(() => {
     const fetchDoctorProfile = async () => {
       try {
-        const response = await api.get('/profiles/doctors-profile');
-        setProfile(response.data);
+        // Updated API endpoint to match backend controller
+        const response = await api.get('/profile/doctor');
         
-        // Populate form data if profile exists
-        if (response.data) {
+        // The backend returns both user and doctor data
+        if (response.data && response.data.doctor) {
+          setProfile(response.data.doctor);
+          
+          // Populate form data with doctor profile
           setFormData({
-            specialization: response.data.specialization || '',
-            qualification: response.data.qualification || [],
-            licenseNumber: response.data.licenseNumber || '',
-            experience: response.data.experience || 0,
-            department: response.data.department || '',
-            fees: response.data.fees || 0,
-            bio: response.data.bio || '',
-            availableTime: response.data.availableTime || [],
-            isAvailable: response.data.isAvailable ?? true
+            specialization: response.data.doctor.specialization || '',
+            qualification: response.data.doctor.qualification || [],
+            licenseNumber: response.data.doctor.licenseNumber || '',
+            experience: response.data.doctor.experience || 0,
+            department: response.data.doctor.department || '',
+            fees: response.data.doctor.fees || 0,
+            bio: response.data.doctor.bio || '',
+            availableTime: response.data.doctor.availableTime || [],
+            isAvailable: response.data.doctor.isAvailable ?? true
           });
         }
         
@@ -52,10 +55,12 @@ const DoctorProfile = () => {
     };
 
     // Only fetch if user is a doctor
-    if (getUserRole() === 'doctor') {
+    if (currentUser && getUserRole() === 'doctor') {
       fetchDoctorProfile();
+    } else {
+      setLoading(false);
     }
-  }, [getUserRole]);
+  }, [currentUser, getUserRole]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -126,8 +131,13 @@ const DoctorProfile = () => {
     setLoading(true);
 
     try {
-      const response = await api.put('/profiles/doctors-profile', formData);
-      setProfile(response.data);
+      // Updated API endpoint to match backend controller
+      const response = await api.put('/profile/doctor', formData);
+      
+      // The backend returns both user and doctor data
+      if (response.data && response.data.doctor) {
+        setProfile(response.data.doctor);
+      }
       setIsEditing(false);
       setError(null);
     } catch (err) {
@@ -149,65 +159,79 @@ const DoctorProfile = () => {
 
   // Render profile view or edit form
   return (
-    <div className="doctor-profile-container">
-      <h1>Doctor Profile</h1>
+    <div className={styles.doctorProfileContainer}>
+      <h1 className={styles.pageTitle}>Doctor Profile</h1>
       
       {!isEditing ? (
-        <div className="profile-view">
-          <div>
-            <strong>Name:</strong> {currentUser?.firstName} {currentUser?.lastName}
+        <div className={styles.profileView}>
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Name:</span> 
+            {currentUser?.firstName} {currentUser?.lastName}
           </div>
-          <div>
-            <strong>Email:</strong> {currentUser?.email}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Email:</span> 
+            {currentUser?.email}
           </div>
-          <div>
-            <strong>Specialization:</strong> {profile?.specialization || 'Not set'}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Specialization:</span> 
+            {profile?.specialization || 'Not set'}
           </div>
-          <div>
-            <strong>Qualifications:</strong> {profile?.qualification?.join(', ') || 'Not set'}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Qualifications:</span> 
+            {profile?.qualification?.join(', ') || 'Not set'}
           </div>
-          <div>
-            <strong>License Number:</strong> {profile?.licenseNumber || 'Not set'}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>License Number:</span> 
+            {profile?.licenseNumber || 'Not set'}
           </div>
-          <div>
-            <strong>Experience:</strong> {profile?.experience || 0} years
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Experience:</span> 
+            {profile?.experience || 0} years
           </div>
-          <div>
-            <strong>Department:</strong> {profile?.department || 'Not set'}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Department:</span> 
+            {profile?.department || 'Not set'}
           </div>
-          <div>
-            <strong>Consultation Fees:</strong> ${profile?.fees || 0}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Consultation Fees:</span> 
+            ${profile?.fees || 0}
           </div>
-          <div>
-            <strong>Availability:</strong> {profile?.isAvailable ? 'Available' : 'Not Available'}
+          <div className={styles.profileInfoItem}>
+            <span className={styles.infoLabel}>Availability:</span> 
+            {profile?.isAvailable ? 'Available' : 'Not Available'}
           </div>
           
           {profile?.bio && (
-            <div>
-              <strong>Bio:</strong>
+            <div className={styles.profileInfoItem}>
+              <span className={styles.infoLabel}>Bio:</span>
               <p>{profile.bio}</p>
             </div>
           )}
           
           {profile?.availableTime && profile.availableTime.length > 0 && (
-            <div>
-              <strong>Available Time Slots:</strong>
+            <div className={styles.profileInfoItem}>
+              <span className={styles.infoLabel}>Available Time Slots:</span>
               {profile.availableTime.map((slot, index) => (
-                <div key={index}>
-                  {slot.day}: {slot.startTime} - {slot.endTime} 
+                <div key={index} className={styles.timeSlot}>
+                  {slot.day.charAt(0).toUpperCase() + slot.day.slice(1)}: {slot.startTime} - {slot.endTime} 
                   (Slot Duration: {slot.slotDuration} mins)
                 </div>
               ))}
             </div>
           )}
           
-          <button onClick={() => setIsEditing(true)}>
-            Edit Profile
-          </button>
+          <div className={styles.actionButtons}>
+            <button 
+              className={`${styles.button} ${styles.editButton}`} 
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Profile
+            </button>
+          </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit}>
-          <div>
+        <form onSubmit={handleSubmit} className={styles.editProfileForm}>
+          <div className={styles.formGroup}>
             <label>Specialization</label>
             <input
               type="text"
@@ -218,7 +242,7 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>Qualifications (comma-separated)</label>
             <input
               type="text"
@@ -228,7 +252,7 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>License Number</label>
             <input
               type="text"
@@ -239,7 +263,7 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>Years of Experience</label>
             <input
               type="number"
@@ -249,7 +273,7 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>Department</label>
             <input
               type="text"
@@ -260,7 +284,7 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>Consultation Fees ($)</label>
             <input
               type="number"
@@ -271,17 +295,18 @@ const DoctorProfile = () => {
             />
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <label>Bio</label>
             <textarea
               name="bio"
               value={formData.bio}
               onChange={handleChange}
+              className={styles.bioTextarea}
             />
           </div>
           
-          <div>
-            <label>
+          <div className={styles.formGroup}>
+            <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
                 name="isAvailable"
@@ -292,13 +317,14 @@ const DoctorProfile = () => {
             </label>
           </div>
           
-          <div>
+          <div className={styles.formGroup}>
             <h3>Available Time Slots</h3>
             {formData.availableTime.map((slot, index) => (
-              <div key={index}>
+              <div key={index} className={styles.timeSlotForm}>
                 <select
                   value={slot.day}
                   onChange={(e) => handleAvailabilityChange(index, 'day', e.target.value)}
+                  className={styles.daySelect}
                 >
                   {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
                     .map(day => (
@@ -313,12 +339,14 @@ const DoctorProfile = () => {
                   type="time"
                   value={slot.startTime}
                   onChange={(e) => handleAvailabilityChange(index, 'startTime', e.target.value)}
+                  className={styles.timeInput}
                 />
                 
                 <input
                   type="time"
                   value={slot.endTime}
                   onChange={(e) => handleAvailabilityChange(index, 'endTime', e.target.value)}
+                  className={styles.timeInput}
                 />
                 
                 <input
@@ -326,24 +354,41 @@ const DoctorProfile = () => {
                   placeholder="Slot Duration (mins)"
                   value={slot.slotDuration}
                   onChange={(e) => handleAvailabilityChange(index, 'slotDuration', e.target.value)}
+                  className={styles.durationInput}
                 />
                 
-                <button type="button" onClick={() => removeAvailabilitySlot(index)}>
+                <button 
+                  type="button" 
+                  onClick={() => removeAvailabilitySlot(index)}
+                  className={`${styles.button} ${styles.removeButton}`}
+                >
                   Remove
                 </button>
               </div>
             ))}
             
-            <button type="button" onClick={addAvailabilitySlot}>
+            <button 
+              type="button" 
+              onClick={addAvailabilitySlot}
+              className={`${styles.button} ${styles.addButton}`}
+            >
               Add Time Slot
             </button>
           </div>
           
-          <div>
-            <button type="submit" disabled={loading}>
+          <div className={styles.actionButtons}>
+            <button 
+              type="submit" 
+              className={`${styles.button} ${styles.saveButton}`}
+              disabled={loading}
+            >
               {loading ? 'Updating...' : 'Save Profile'}
             </button>
-            <button type="button" onClick={() => setIsEditing(false)}>
+            <button 
+              type="button" 
+              className={`${styles.button} ${styles.cancelButton}`}
+              onClick={() => setIsEditing(false)}
+            >
               Cancel
             </button>
           </div>

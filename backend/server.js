@@ -2,11 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db");
-const userRoutes = require("./routes/user");
-const appointmentRoutes = require("./routes/appointments");
-const doctorProfile = require("./routes/doctorsProfile");
-const patientProfile = require("./routes/patientsProfile");
-const refreshTokenRoutes = require('./routes/refreshtoken');
+const userRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const appointmentRoutes = require("./routes/appointmentsRoutes");
+
 
 const app = express();
 
@@ -18,12 +18,11 @@ app.use(express.json());
 connectDB();
 
 // API Routes
-app.use("/api/users", userRoutes);
+app.use("/api/auth", userRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/appointments", appointmentRoutes);
-app.use("/api/doctors-profile", doctorProfile);
-app.use("/api/patients-profile", patientProfile);
-app.use('/api/auth', refreshTokenRoutes);
-
+app.use("/api/admin", adminRoutes);
 
 // Root Route
 app.get("/", (req, res) => {

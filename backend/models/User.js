@@ -1,4 +1,4 @@
-// models/User.js - Base user model for authentication
+// models/User.js - Updated with password reset fields
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -37,13 +37,11 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
   lastLogin: {
     type: Date
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, { timestamps: true });
 
 // Hash password before saving

@@ -1,4 +1,4 @@
-// models/Doctor.js
+// models/Doctor.js - Updated with verification field
 const mongoose = require('mongoose');
 
 const DoctorSchema = new mongoose.Schema({
@@ -56,6 +56,10 @@ const DoctorSchema = new mongoose.Schema({
   isAvailable: {
     type: Boolean,
     default: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

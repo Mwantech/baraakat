@@ -1,155 +1,159 @@
+/* Main container styles */
 .patientProfileContainer {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .pageTitle {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 30px;
-    font-size: 2rem;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
-  }
-  
-  .profileView {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Page title */
+.pageTitle {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3498db;
+}
+
+/* Profile view styles */
+.profileView {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profileInfoItem {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-right: 0.5rem;
+  min-width: 150px;
+}
+
+/* Form styles */
+.editProfileForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Button styles */
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  text-transform: capitalize;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.editButton {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.saveButton {
+  background: linear-gradient(135deg, #070707, #00f2fe);
+}
+
+.cancelButton {
+  background: linear-gradient(135deg, #e74c3c, #fd5a48);
+}
+
+/* Loading and error states */
+.loadingState {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #3498db;
+}
+
+.errorMessage {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #e74c3c;
+  background-color: #fadbd8;
+  border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .patientProfileContainer {
+    padding: 1rem;
   }
   
   .profileInfoItem {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .profileInfoItem:hover {
-    background-color: #f1f3f5;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   
   .infoLabel {
-    font-weight: 600;
-    color: #2c3e50;
-    margin-right: 10px;
-    min-width: 120px;
-  }
-  
-  .editProfileForm {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  
-  .formGroup {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .formGroup label {
-    margin-bottom: 8px;
-    color: #34495e;
-    font-weight: 500;
-  }
-  
-  .formGroup input,
-  .formGroup select {
-    padding: 10px;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .formGroup input:focus,
-  .formGroup select:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    min-width: 100%;
   }
   
   .actionButtons {
-    grid-column: span 2;
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 20px;
+    flex-direction: column;
   }
   
   .button {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
   }
-  
-  .button:hover {
-    transform: translateY(-2px);
-  }
-  
-  .button:active {
-    transform: translateY(1px);
-  }
-  
-  .editButton {
-    background-color: #3498db;
-    color: white;
-  }
-  
-  .editButton:hover {
-    background-color: #2980b9;
-  }
-  
-  .saveButton {
-    background-color: #2ecc71;
-    color: white;
-  }
-  
-  .saveButton:hover {
-    background-color: #27ae60;
-  }
-  
-  .cancelButton {
-    background-color: #e74c3c;
-    color: white;
-  }
-  
-  .cancelButton:hover {
-    background-color: #c0392b;
-  }
-  
-  .errorMessage {
-    color: #e74c3c;
-    text-align: center;
-    padding: 20px;
-    background-color: #f8d7da;
-    border-radius: 8px;
-  }
-  
-  .loadingState {
-    text-align: center;
-    color: #2c3e50;
-    padding: 20px;
-    background-color: #f1f3f5;
-    border-radius: 8px;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 600px) {
-    .editProfileForm {
-      grid-template-columns: 1fr;
-    }
-  
-    .actionButtons {
-      grid-column: span 1;
-      flex-direction: column;
-    }
-  }
+}

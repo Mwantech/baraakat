@@ -1,75 +1,36 @@
-// DoctorController.js
+// controllers/doctorController.js
+
 const Doctor = require('../models/Doctors');
 
-class DoctorController {
-  static async getAll(req, res) {
-    try {
-      const doctors = await Doctor.find();
-      return res.json(doctors);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
+/**
+ * GET /doctors
+ * Fetch all doctors and populate associated user details.
+ */
+exports.getDoctors = async (req, res) => {
+  try {
+    // Fetch all doctors and populate the 'user' field with corresponding user data.
+    const doctors = await Doctor.find().populate('user');
+    res.status(200).json({ doctors });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
+};
 
-  static async getById(req, res) {
-    try {
-      const doctor = await Doctor.findById(req.params.id);
-      if (!doctor) {
-        return res.status(404).json({ message: 'Doctor not found' });
-      }
-      return res.json(doctor);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
+/**
+ * GET /doctors/:doctorId
+ * Fetch a specific doctor by ID and populate associated user details.
+ */
+exports.getDoctorById = async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+    const doctor = await Doctor.findById(doctorId).populate('user');
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
     }
-  }
 
-  static async create(req, res) {
-    try {
-      const doctor = new Doctor(req.body);
-      await doctor.save();
-      return res.status(201).json(doctor);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
+    res.status(200).json({ doctor });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-
-  static async update(req, res) {
-    try {
-      const doctor = await Doctor.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!doctor) {
-        return res.status(404).json({ message: 'Doctor not found' });
-      }
-      return res.json(doctor);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-
-  static async delete(req, res) {
-    try {
-      const doctor = await Doctor.findByIdAndDelete(req.params.id);
-      if (!doctor) {
-        return res.status(404).json({ message: 'Doctor not found' });
-      }
-      return res.json({ message: 'Doctor deleted successfully' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-
-  static async getAvailableDoctors(req, res) {
-    try {
-      const { date, specialty } = req.query;
-      // Logic to find available doctors based on date and specialty
-      const availableDoctors = await Doctor.find({
-        specialty,
-        // Additional logic to check availability based on appointments
-      });
-      return res.json(availableDoctors);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-}
-
-module.exports = DoctorController;
+};

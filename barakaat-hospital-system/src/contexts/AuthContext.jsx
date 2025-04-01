@@ -130,7 +130,8 @@ export const AuthProvider = ({ children }) => {
   // Sign in function
   const signIn = async (email, password) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/users/login`, { email, password });
+      // Updated endpoint to match the backend
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
       
       const { token, user } = response.data;
       
@@ -163,23 +164,58 @@ export const AuthProvider = ({ children }) => {
   // Sign up function
   const signUp = async (userData, role) => {
     try {
-      // Format data for backend
-      const formattedData = {
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        password: userData.password,
-        role: role,
-        phone: userData.phone || '' // Add phone if available
-      };
+      // Determine the appropriate registration endpoint based on role
+      let endpoint = '';
       
-      // Add doctor-specific fields if role is doctor
-      if (role === 'doctor') {
-        formattedData.specialization = userData.specialization;
-        formattedData.licenseNumber = userData.licenseNumber;
+      if (role === 'patient') {
+        endpoint = `${API_BASE_URL}/auth/register/patient`;
+      } else if (role === 'doctor') {
+        endpoint = `${API_BASE_URL}/auth/register/doctor`;
+      } else if (role === 'admin') {
+        endpoint = `${API_BASE_URL}/auth/register/admin`;
+      } else {
+        throw new Error('Invalid role specified');
       }
       
-      const response = await axios.post(`${API_BASE_URL}/users/register`, formattedData);
+      // Format patient data
+      if (role === 'patient') {
+        userData = {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          password: userData.password,
+          phone: userData.phone || '',
+          // Patient specific fields
+          dateOfBirth: userData.dateOfBirth || null,
+          gender: userData.gender || '',
+          address: userData.address || '',
+          bloodGroup: userData.bloodGroup || '',
+          allergies: userData.allergies || [],
+          medicalHistory: userData.medicalHistory || []
+        };
+      }
+      
+      // Format doctor data
+      if (role === 'doctor') {
+        userData = {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          password: userData.password,
+          phone: userData.phone || '',
+          // Doctor specific fields
+          specialization: userData.specialization,
+          qualification: userData.qualification || [],
+          licenseNumber: userData.licenseNumber,
+          experience: userData.experience || 0,
+          department: userData.department || userData.specialization,
+          availableTime: userData.availableTime || [],
+          fees: userData.fees || 0,
+          bio: userData.bio || ''
+        };
+      }
+      
+      const response = await axios.post(endpoint, userData);
       
       const { token, user } = response.data;
       
