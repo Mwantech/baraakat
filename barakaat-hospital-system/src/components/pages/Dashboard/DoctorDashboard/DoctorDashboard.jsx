@@ -9,13 +9,15 @@ const DoctorDashboard = () => {
   const { currentUser, signOut } = useAuth();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dashboardStats, setDashboardStats] = useState({
-    totalAppointments: 0,
+    totalPatients: 0,
     todayAppointments: 0,
-    pendingAppointments: 0,
-    totalPatients: 0
+    upcomingAppointments: 0,
+    completedAppointments: 0,
+    activePrescriptions: 0
   });
   const [recentPatients, setRecentPatients] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [pendingRefills, setPendingRefills] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -32,46 +34,116 @@ const DoctorDashboard = () => {
       try {
         setIsLoading(true);
         
-        // Fetch dashboard statistics
-        const statsResponse = await api.get('/doctors/dashboard/stats');
-        setDashboardStats(statsResponse.data);
+        // 1. Fetch dashboard statistics
+        try {
+          const dashboardResponse = await api.get('/dashboard/doctor');
+          const dashboardData = dashboardResponse.data;
+          
+          setDashboardStats({
+            totalPatients: dashboardData.stats.totalPatients,
+            todayAppointments: dashboardData.stats.todayAppointments,
+            upcomingAppointments: dashboardData.stats.upcomingAppointments,
+            completedAppointments: dashboardData.stats.completedAppointments,
+            activePrescriptions: dashboardData.stats.activePrescriptions
+          });
+          
+          // Set upcoming appointments
+          const formattedAppointments = dashboardData.nextAppointments.map(appointment => ({
+            id: appointment._id,
+            patientName: `${appointment.patient?.user?.firstName} ${appointment.patient?.user?.lastName}`,
+            date: new Date(appointment.appointmentDate).toLocaleDateString(),
+            time: appointment.startTime,
+            type: appointment.symptoms ? 'Symptoms: ' + appointment.symptoms : 'Consultation'
+          }));
+          setUpcomingAppointments(formattedAppointments);
+        } catch (error) {
+          console.error('Error fetching dashboard stats:', error);
+          // Set default values on error
+          setDashboardStats({
+            totalPatients: 0,
+            todayAppointments: 0,
+            upcomingAppointments: 0,
+            completedAppointments: 0,
+            activePrescriptions: 0
+          });
+          setUpcomingAppointments([]);
+        }
         
-        // Fetch recent patients
-        const patientsResponse = await api.get('/doctors/patients/recent');
-        setRecentPatients(patientsResponse.data.slice(0, 5));
+        // 2. Fetch recent patients
+        try {
+          const allPatientsResponse = await api.get('/patients/');
+          // Check if response.data is already an array or if data is nested in a 'data' property
+          const allPatients = Array.isArray(allPatientsResponse.data) 
+            ? allPatientsResponse.data 
+            : (allPatientsResponse.data.data || []);
+          
+          if (Array.isArray(allPatients) && allPatients.length > 0) {
+            setRecentPatients(allPatients.slice(0, 5).map(patient => ({
+              id: patient._id,
+              name: `${patient.user?.firstName} ${patient.user?.lastName}`,
+              age: calculateAge(patient.dateOfBirth),
+              lastVisit: patient.lastVisit || 'N/A',
+              condition: patient.condition || 'Regular checkup'
+            })));
+          } else {
+            setRecentPatients([]);
+          }
+        } catch (error) {
+          console.error('Error fetching recent patients:', error);
+          setRecentPatients([]);
+        }
         
-        // Fetch upcoming appointments
-        const appointmentsResponse = await api.get('/doctors/appointments/upcoming');
-        setUpcomingAppointments(appointmentsResponse.data.slice(0, 5));
+        // 3. Fetch pending refill requests
+        const doctorId = currentUser?._id;
+        if (doctorId) {
+          try {
+            const refillsResponse = await api.get(`/doctors/${doctorId}/prescriptions/refill-requests?status=pending`);
+            const refillsData = refillsResponse.data.data || [];
+            
+            setPendingRefills(refillsData.map(refill => ({
+              id: refill._id,
+              prescriptionId: refill.prescription._id,
+              refillId: refill.refillId,
+              patientName: `${refill.patient?.user?.firstName} ${refill.patient?.user?.lastName}`,
+              medication: refill.prescription.medication,
+              dosage: refill.prescription.dosage,
+              requestDate: new Date(refill.requestDate).toLocaleDateString(),
+              refillsRemaining: refill.prescription.refillsRemaining
+            })));
+          } catch (error) {
+            console.error('Error fetching refill requests:', error);
+            setPendingRefills([]);
+          }
+        } else {
+          console.warn('Doctor ID is undefined, skipping refill requests fetch');
+          setPendingRefills([]);
+        }
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        // Use mock data for demonstration
-        setDashboardStats({
-          totalAppointments: 125,
-          todayAppointments: 8,
-          pendingAppointments: 15,
-          totalPatients: 73
-        });
-        
-        setRecentPatients([
-          { id: 1, name: 'John Smith', age: 45, lastVisit: '2025-03-15', condition: 'Hypertension' },
-          { id: 2, name: 'Sarah Johnson', age: 32, lastVisit: '2025-03-14', condition: 'Pregnancy' },
-          { id: 3, name: 'Robert Chen', age: 58, lastVisit: '2025-03-10', condition: 'Diabetes' }
-        ]);
-        
-        setUpcomingAppointments([
-          { id: 101, patientName: 'Emma Wilson', date: '2025-03-20', time: '14:30', type: 'Follow-up' },
-          { id: 102, patientName: 'Michael Brooks', date: '2025-03-21', time: '09:15', type: 'New Patient' },
-          { id: 103, patientName: 'Linda Garcia', date: '2025-03-21', time: '11:00', type: 'Consultation' }
-        ]);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchDashboardData();
-  }, []);
+  }, [currentUser]);
+
+  // Helper function to calculate age from date of birth
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 'N/A';
+    
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!isSidebarCollapsed);
@@ -80,6 +152,41 @@ const DoctorDashboard = () => {
   const handleSignOut = () => {
     signOut();
     navigate('/signin');
+  };
+
+  const handleViewAppointment = (appointmentId) => {
+    navigate(`/dashboard/doctor/appointments/${appointmentId}`);
+  };
+
+  const handleEditAppointment = (appointmentId) => {
+    navigate(`/dashboard/doctor/appointments/${appointmentId}/edit`);
+  };
+
+  const handleViewPatient = (patientId) => {
+    navigate(`/dashboard/doctor/patients/${patientId}`);
+  };
+
+  const handleViewPrescription = (prescriptionId) => {
+    navigate(`/dashboard/doctor/prescriptions/${prescriptionId}`);
+  };
+
+  const handleProcessRefill = async (prescriptionId, refillId, status) => {
+    try {
+      await api.post('/prescriptions/refill/process', {
+        prescriptionId,
+        refillId,
+        status
+      });
+      
+      // Update the pending refills list after processing
+      setPendingRefills(pendingRefills.filter(refill => refill.refillId !== refillId));
+      
+      // Show success message (you can implement a toast notification here)
+      alert(`Refill request ${status} successfully`);
+    } catch (error) {
+      console.error('Error processing refill request:', error);
+      alert(`Error: ${error.response?.data?.message || 'Failed to process refill request'}`);
+    }
   };
 
   return (
@@ -184,10 +291,7 @@ const DoctorDashboard = () => {
                   <p className={styles.dateDisplay}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className={styles.dashboardActions}>
-                  <button className={`${styles.actionButton} ${styles.primaryAction}`}>
-                    <span className={styles.icon}>➕</span>
-                    <span>New Appointment</span>
-                  </button>
+                  
                   <button className={styles.actionButton}>
                     <span className={styles.icon}>🔔</span>
                   </button>
@@ -203,7 +307,7 @@ const DoctorDashboard = () => {
                   <div className={styles.statIcon}>📅</div>
                   <div className={styles.statInfo}>
                     <h3>Total Appointments</h3>
-                    <div className={styles.statValue}>{dashboardStats.totalAppointments}</div>
+                    <div className={styles.statValue}>{dashboardStats.upcomingAppointments + dashboardStats.completedAppointments}</div>
                   </div>
                 </div>
                 
@@ -219,7 +323,7 @@ const DoctorDashboard = () => {
                   <div className={styles.statIcon}>⏳</div>
                   <div className={styles.statInfo}>
                     <h3>Pending Requests</h3>
-                    <div className={styles.statValue}>{dashboardStats.pendingAppointments}</div>
+                    <div className={styles.statValue}>{pendingRefills.length}</div>
                   </div>
                 </div>
                 
@@ -258,8 +362,8 @@ const DoctorDashboard = () => {
                             <div className={styles.appointmentType}>{appointment.type}</div>
                           </div>
                           <div className={styles.appointmentActions}>
-                            <button className={styles.iconButton} title="View Details">👁️</button>
-                            <button className={styles.iconButton} title="Edit">✏️</button>
+                            <button className={styles.iconButton} title="View Details" onClick={() => handleViewAppointment(appointment.id)}>👁️</button>
+                            <button className={styles.iconButton} title="Edit" onClick={() => handleEditAppointment(appointment.id)}>✏️</button>
                           </div>
                         </li>
                       ))}
@@ -269,6 +373,64 @@ const DoctorDashboard = () => {
                   )}
                 </div>
                 
+                {/* Pending Refill Requests */}
+                <div className={styles.contentCard}>
+                  <div className={styles.cardHeader}>
+                    <h2>Pending Refill Requests</h2>
+                    <NavLink to="/dashboard/doctor/prescriptions/refills" className={styles.viewAllLink}>
+                      View All
+                    </NavLink>
+                  </div>
+                  
+                  {isLoading ? (
+                    <div className={styles.loadingState}>Loading refill requests...</div>
+                  ) : pendingRefills.length > 0 ? (
+                    <ul className={styles.refillList}>
+                      {pendingRefills.map((refill) => (
+                        <li key={refill.refillId} className={styles.refillItem}>
+                          <div className={styles.refillInfo}>
+                            <div className={styles.refillPatient}>{refill.patientName}</div>
+                            <div className={styles.refillMedication}>
+                              <strong>{refill.medication}</strong> - {refill.dosage}
+                            </div>
+                            <div className={styles.refillDetails}>
+                              <span>Requested: {refill.requestDate}</span>
+                              <span>•</span>
+                              <span>Refills remaining: {refill.refillsRemaining}</span>
+                            </div>
+                          </div>
+                          <div className={styles.refillActions}>
+                            <button 
+                              className={`${styles.actionButton} ${styles.approveButton}`}
+                              onClick={() => handleProcessRefill(refill.prescriptionId, refill.refillId, 'approved')}
+                            >
+                              ✓ Approve
+                            </button>
+                            <button 
+                              className={`${styles.actionButton} ${styles.rejectButton}`}
+                              onClick={() => handleProcessRefill(refill.prescriptionId, refill.refillId, 'rejected')}
+                            >
+                              ✗ Reject
+                            </button>
+                            <button 
+                              className={styles.iconButton} 
+                              title="View Prescription" 
+                              onClick={() => handleViewPrescription(refill.prescriptionId)}
+                            >
+                              👁️
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className={styles.emptyState}>No pending refill requests</div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Additional Content Row */}
+              <div className={styles.contentGrid}>
                 {/* Recent Patients */}
                 <div className={styles.contentCard}>
                   <div className={styles.cardHeader}>
@@ -283,7 +445,7 @@ const DoctorDashboard = () => {
                   ) : recentPatients.length > 0 ? (
                     <ul className={styles.patientList}>
                       {recentPatients.map((patient) => (
-                        <li key={patient.id} className={styles.patientItem}>
+                        <li key={patient.id} className={styles.patientItem} onClick={() => handleViewPatient(patient.id)}>
                           <div className={styles.patientAvatar}>
                             {patient.name.charAt(0)}
                           </div>
@@ -304,6 +466,26 @@ const DoctorDashboard = () => {
                   ) : (
                     <div className={styles.emptyState}>No recent patients</div>
                   )}
+                </div>
+                
+                {/* New Card: Active Prescriptions */}
+                <div className={styles.contentCard}>
+                  <div className={styles.cardHeader}>
+                    <h2>Active Prescriptions</h2>
+                    <NavLink to="/dashboard/doctor/prescriptions" className={styles.viewAllLink}>
+                      View All
+                    </NavLink>
+                  </div>
+                  
+                  <div className={styles.statHighlight}>
+                    <div className={styles.statHighlightIcon}>💊</div>
+                    <div className={styles.statHighlightValue}>
+                      {dashboardStats.activePrescriptions}
+                    </div>
+                    <div className={styles.statHighlightLabel}>
+                      Active Prescriptions
+                    </div>
+                  </div>
                 </div>
               </div>
             </>

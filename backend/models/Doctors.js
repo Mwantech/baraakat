@@ -1,4 +1,4 @@
-// models/Doctor.js - Updated with verification field
+// models/Doctor.js
 const mongoose = require('mongoose');
 
 const DoctorSchema = new mongoose.Schema({
@@ -18,25 +18,32 @@ const DoctorSchema = new mongoose.Schema({
     unique: true
   },
   experience: {
-    type: Number, // years
+    type: Number,
     default: 0
   },
   department: {
     type: String,
     required: true
   },
-  availableTime: [{
-    day: {
-      type: String,
-      enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-    },
-    startTime: String,
-    endTime: String,
-    slotDuration: {
-      type: Number,
-      default: 30 // minutes
-    }
-  }],
+  availableTime: {
+    type: [{
+      day: {
+        type: String,
+        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+      },
+      startTime: String, // e.g., '09:00'
+      endTime: String,   // e.g., '17:00'
+      slotDuration: {
+        type: Number,
+        default: 30 // in minutes
+      }
+    }],
+    default: () => ([
+      { day: 'monday', startTime: '09:00', endTime: '17:00', slotDuration: 30 },
+      { day: 'wednesday', startTime: '10:00', endTime: '16:00', slotDuration: 30 },
+      { day: 'friday', startTime: '09:00', endTime: '15:00', slotDuration: 30 }
+    ])
+  },
   fees: {
     type: Number,
     required: true
@@ -51,8 +58,12 @@ const DoctorSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  bio: String,
-  profilePicture: String,
+  bio: {
+    type: String
+  },
+  profilePicture: {
+    type: String
+  },
   isAvailable: {
     type: Boolean,
     default: true
@@ -61,7 +72,9 @@ const DoctorSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   }
-}, { timestamps: true });
+}, {
+  timestamps: true
+});
 
 const Doctor = mongoose.model('Doctor', DoctorSchema);
 module.exports = Doctor;

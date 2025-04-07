@@ -1,0 +1,532 @@
+/* MedicalRecords.module.css */
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 16px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+}
+
+.header p {
+  font-size: 16px;
+  color: #5d6778;
+  margin: 0;
+}
+
+/* Summary Section */
+.summarySection {
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summaryCard h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.summaryData {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.summaryItem {
+  flex: 1;
+  min-width: 200px;
+}
+
+.summaryLabel {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  color: #5d6778;
+}
+
+.summaryValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: #3498db;
+}
+
+.diagnosisList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.diagnosisTag {
+  background-color: #e1f5fe;
+  color: #0277bd;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  display: inline-block;
+}
+
+/* Search Section */
+.searchSection {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+}
+
+.searchInputGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 2;
+  min-width: 200px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.dateInput {
+  flex: 1;
+  min-width: 150px;
+  padding: 10px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.searchInput:focus, .dateInput:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.searchButton {
+  padding: 10px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background-color: #2980b9;
+}
+
+.resetButton {
+  padding: 10px 16px;
+  background-color: #f1f2f6;
+  color: #5d6778;
+  border: 1px solid #dfe4ea;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.resetButton:hover {
+  background-color: #dfe4ea;
+}
+
+/* Content Area */
+.contentArea {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  height: calc(100vh - 250px);
+  min-height: 500px;
+}
+
+/* Records List */
+.recordsList {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.recordsList h2 {
+  margin: 0;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.recordItems {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.recordItem {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.recordItem:hover {
+  background-color: #f5f7fa;
+}
+
+.selectedRecord {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+}
+
+.recordDate {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+}
+
+.recordTitle {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #2c3e50;
+}
+
+.recordDoctor {
+  font-size: 12px;
+  color: #5d6778;
+  margin-bottom: 8px;
+}
+
+.recordDiagnosis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.diagnosisChip {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* Record Details */
+.recordDetails {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.detailsCard {
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.detailsHeader {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailsHeader h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.detailsDate {
+  font-size: 14px;
+  padding: 4px 12px;
+  background-color: #f1f2f6;
+  border-radius: 16px;
+  color: #5d6778;
+}
+
+.detailsDoctor {
+  margin-bottom: 24px;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.detailsLabel {
+  font-weight: 600;
+  color: #5d6778;
+  margin-right: 8px;
+}
+
+.detailsSection {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detailsSection h3 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #2c3e50;
+}
+
+.vitalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.vitalItem {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.vitalLabel {
+  font-size: 12px;
+  color: #5d6778;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.vitalValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.symptomsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptomItem {
+  background-color: #fff3e0;
+  color: #e65100;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  display: inline-block;
+}
+
+.diagnosisItem {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.diagnosisItem:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.diagnosisName {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.diagnosisNotes {
+  font-size: 14px;
+  color: #5d6778;
+  margin: 4px 0 0 0;
+}
+
+.treatmentItem {
+  background-color: #f1f8e9;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.treatmentName {
+  font-weight: 600;
+  font-size: 14px;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.treatmentDosage, .treatmentDuration {
+  font-size: 12px;
+  color: #5d6778;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.treatmentInstructions {
+  font-size: 14px;
+  color: #2c3e50;
+  margin: 8px 0 0 0;
+}
+
+.followUpText {
+  font-size: 14px;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.noteItem {
+  margin-bottom: 12px;
+}
+
+.noteLabel {
+  font-weight: 600;
+  font-size: 14px;
+  color: #5d6778;
+  margin-bottom: 4px;
+}
+
+.noteText {
+  font-size: 14px;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.attachmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.attachmentName {
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.attachmentLink {
+  font-size: 12px;
+  color: #3498db;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #e3f2fd;
+  transition: background-color 0.2s;
+}
+
+.attachmentLink:hover {
+  background-color: #bbdefb;
+}
+
+.noSelectedRecord {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder {
+  text-align: center;
+  color: #95a5a6;
+}
+
+.placeholder p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.noRecords {
+  padding: 24px;
+  text-align: center;
+  color: #95a5a6;
+  font-size: 16px;
+}
+
+.error {
+  background-color: #feecf0;
+  color: #cc0f35;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.loading {
+  display: flex;
+  height: 200px;
+  align-items: center;
+  justify-content: center;
+  color: #95a5a6;
+  font-size: 16px;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .contentArea {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .recordsList, .recordDetails {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchInputGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInput, .dateInput, .searchButton, .resetButton {
+    width: 100%;
+  }
+
+  .vitalsGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -124,7 +124,7 @@ const AdminDashboard = () => {
             </NavLink>
             
             <NavLink 
-              to="/dashboard/admin/patients" 
+              to="/dashboard/admin/admins" 
               className={({ isActive }) => 
                 isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
               }

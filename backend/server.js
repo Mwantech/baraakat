@@ -6,6 +6,10 @@ const userRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const appointmentRoutes = require("./routes/appointmentsRoutes");
+const prescriptionRoutes = require("./routes/prescriptionsRoutes");
+const patientRoutes = require("./routes/patientsRoutes");
+const medicalRecordsRoutes = require("./routes/medicalRecordsRoutes");
+const dashboardStatsRoutes = require("./routes/dashboardstatsRoutes");
 
 
 const app = express();
@@ -17,12 +21,22 @@ app.use(express.json());
 // Connect to Database
 connectDB();
 
+// Add to your main Express app before route definitions
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // API Routes
 app.use("/api/auth", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/medical-records", medicalRecordsRoutes);
+app.use("/api/dashboard", dashboardStatsRoutes);
 
 // Root Route
 app.get("/", (req, res) => {

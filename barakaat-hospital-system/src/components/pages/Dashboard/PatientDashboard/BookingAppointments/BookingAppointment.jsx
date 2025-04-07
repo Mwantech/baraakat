@@ -10,12 +10,13 @@ import {
   FaVideo,
   FaClinicMedical,
   FaChevronRight,
-  FaCheckCircle
+  FaCheckCircle,
+  FaFilter
 } from 'react-icons/fa';
 import { useAuth, API_BASE_URL } from '../../../../../contexts/AuthContext';
 
 const AppointmentBooking = () => {
-  const { getToken, user } = useAuth();
+  const { getToken, currentUser } = useAuth(); // Change from user to currentUser to match context
   const navigate = useNavigate();
   
   const [doctors, setDoctors] = useState([]);
@@ -37,23 +38,94 @@ const AppointmentBooking = () => {
     reason: ''
   });
   
+  // Add filter state for doctors
+  const [filters, setFilters] = useState({
+    specialization: '',
+    date: ''
+  });
+  
   const [availableSlots, setAvailableSlots] = useState([]);
   const [symptomInput, setSymptomInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [specializations, setSpecializations] = useState([]);
+  const [userId, setUserId] = useState('');
 
+  // Debug log to check user data
   useEffect(() => {
-    fetchDoctors();
-    // Set patientId from authenticated user if available
-    if (user && user._id) {
+    console.log("Current user data:", currentUser);
+    
+    // Helper function to get user ID from various possible sources
+    const extractUserId = () => {
+      // Check for stored user in localStorage as backup
+      const storedUserString = localStorage.getItem('user');
+      let storedUser = null;
+      
+      if (storedUserString) {
+        try {
+          storedUser = JSON.parse(storedUserString);
+        } catch (e) {
+          console.error("Failed to parse stored user:", e);
+        }
+      }
+      
+      // Try multiple possible locations for the ID
+      const possibleId = 
+        // From current user object
+        (currentUser && currentUser._id) || 
+        (currentUser && currentUser.id) || 
+        (currentUser && currentUser.userId) ||
+        // From stored user object
+        (storedUser && storedUser._id) ||
+        (storedUser && storedUser.id) ||
+        (storedUser && storedUser.userId) ||
+        // From decoded JWT token (if you have access)
+        null;
+      
+      console.log("Extracted user ID:", possibleId);
+      return possibleId;
+    };
+    
+    const patientId = extractUserId();
+    if (patientId) {
+      setUserId(patientId);
       setAppointmentData(prevData => ({
         ...prevData,
-        patientId: user._id
+        patientId: patientId
       }));
+    } else {
+      console.warn("Could not find user ID in user object:", currentUser);
     }
-  }, [user]);
+    
+    fetchDoctors();
+    fetchSpecializations();
+  }, [currentUser]);
 
-  const fetchDoctors = async () => {
+  // New function to fetch available specializations
+  const fetchSpecializations = async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/appointments/specializations`, {
+        headers: {
+          'x-auth-token': token
+        }
+      });
+
+      if (response.data && response.data.success) {
+        setSpecializations(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching specializations:', error);
+    }
+  };
+
+  // Updated fetchDoctors function to use the new endpoint
+  const fetchDoctors = async (filterParams = {}) => {
     try {
       setLoading(true);
       const token = getToken();
@@ -62,11 +134,23 @@ const AppointmentBooking = () => {
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/auth/doctors/`, {
-        headers: {
-          'x-auth-token': token
+      // Construct query string from filter parameters
+      const queryParams = new URLSearchParams();
+      if (filterParams.specialization) {
+        queryParams.append('specialization', filterParams.specialization);
+      }
+      if (filterParams.date) {
+        queryParams.append('date', filterParams.date);
+      }
+
+      const response = await axios.get(
+        `${API_BASE_URL}/appointments/available?${queryParams.toString()}`, 
+        {
+          headers: {
+            'x-auth-token': token
+          }
         }
-      });
+      );
 
       if (!response.data || !response.data.success) {
         throw new Error('Failed to fetch doctors');
@@ -81,6 +165,18 @@ const AppointmentBooking = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value
+    });
+  };
+
+  const applyFilters = () => {
+    fetchDoctors(filters);
+  };
+
   const fetchAvailableSlots = async (doctorId, date) => {
     try {
       const token = getToken();
@@ -90,7 +186,7 @@ const AppointmentBooking = () => {
       }
 
       const response = await axios.get(
-        `${API_BASE_URL}/availability/${doctorId}?date=${date}`,
+        `${API_BASE_URL}/appointments/availability/${doctorId}?date=${date}`,
         {
           headers: {
             'x-auth-token': token
@@ -121,7 +217,7 @@ const AppointmentBooking = () => {
   const handleDateSelect = (date) => {
     setAppointmentData({
       ...appointmentData,
-      appointmentDate: date // Changed from scheduledDate to appointmentDate
+      appointmentDate: date
     });
     fetchAvailableSlots(appointmentData.doctorId, date);
     setCurrentStep(3);
@@ -173,17 +269,57 @@ const AppointmentBooking = () => {
         return;
       }
 
+      // Final check for patientId
+      if (!userId && !appointmentData.patientId) {
+        // Try to get user ID one more time from localStorage
+        const storedUserString = localStorage.getItem('user');
+        let finalUserId = null;
+        
+        if (storedUserString) {
+          try {
+            const storedUser = JSON.parse(storedUserString);
+            finalUserId = storedUser._id || storedUser.id || storedUser.userId;
+          } catch (e) {
+            console.error("Failed to parse stored user:", e);
+          }
+        }
+        
+        if (!finalUserId) {
+          setError('User ID not found. Please log in again.');
+          setSubmitting(false);
+          return;
+        }
+        
+        // Set the user ID we found
+        setUserId(finalUserId);
+        setAppointmentData(prev => ({...prev, patientId: finalUserId}));
+      }
+
+      // Get the patientId from state or from the appointmentData
+      const patientId = userId || appointmentData.patientId;
+      
+      if (!patientId) {
+        setError('User ID not found. Please log in again.');
+        setSubmitting(false);
+        return;
+      }
+      
+      console.log("Submitting with patientId:", patientId);
+
       // Prepare submission data to match controller expectations
       const submissionData = {
-        patientId: appointmentData.patientId,
+        patientId: patientId,
         doctorId: appointmentData.doctorId,
         appointmentDate: appointmentData.appointmentDate,
         startTime: appointmentData.startTime,
         endTime: appointmentData.endTime,
         symptoms: appointmentData.symptoms,
         notes: appointmentData.notes + (appointmentData.isVirtual ? "\nVirtual Appointment" : "\nIn-person Appointment") +
-              (appointmentData.reason ? `\nReason: ${appointmentData.reason}` : "")
+              (appointmentData.reason ? `\nReason: ${appointmentData.reason}` : "") +
+              `\nAppointment Type: ${appointmentData.appointmentType}`
       };
+
+      console.log("Submission data:", submissionData);
 
       const response = await axios.post(
         `${API_BASE_URL}/appointments`,
@@ -206,7 +342,7 @@ const AppointmentBooking = () => {
       }, 2000);
     } catch (error) {
       console.error('Error booking appointment:', error);
-      setError('Failed to book appointment. Please try again.');
+      setError(`Failed to book appointment: ${error.response?.data?.message || error.message}`);
       setSubmitting(false);
     }
   };
@@ -215,36 +351,90 @@ const AppointmentBooking = () => {
     return (
       <div className={styles.selectionContainer}>
         <h3 className={styles.stepTitle}>Select a Doctor</h3>
-        <div className={styles.doctorGrid}>
-          {doctors.map(doctor => (
-            <div 
-              key={doctor._id} 
-              className={styles.doctorCard}
-              onClick={() => handleDoctorSelect(doctor)}
+        
+        {/* Add filter options */}
+        <div className={styles.filterContainer}>
+          <div className={styles.filterGroup}>
+            <label htmlFor="specialization">Specialization:</label>
+            <select
+              id="specialization"
+              name="specialization"
+              value={filters.specialization}
+              onChange={handleFilterChange}
+              className={styles.filterSelect}
             >
-              <div className={styles.doctorAvatar}>
-                {doctor.profileImage ? (
-                  <img src={doctor.profileImage} alt={`Dr. ${doctor.lastName}`} />
-                ) : (
-                  <FaUserMd size={40} />
-                )}
-              </div>
-              <div className={styles.doctorInfo}>
-                <h4>Dr. {doctor.firstName} {doctor.lastName}</h4>
-                <p>{doctor.specialty || doctor.specialization || 'General Practitioner'}</p>
-                <p className={styles.experience}>{doctor.experience || '5+ years'} experience</p>
-                {doctor.fees && <p className={styles.fees}>Fee: ${doctor.fees}</p>}
-              </div>
-              <div className={styles.selectDoctor}>
-                <FaChevronRight />
-              </div>
-            </div>
-          ))}
+              <option value="">All Specializations</option>
+              {specializations.map((spec, index) => (
+                <option key={index} value={spec}>{spec}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label htmlFor="date">Available Date:</label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={filters.date}
+              onChange={handleFilterChange}
+              className={styles.filterInput}
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+          
+          <button 
+            className={styles.filterButton}
+            onClick={applyFilters}
+          >
+            <FaFilter style={{ marginRight: '5px' }} />
+            Apply Filters
+          </button>
         </div>
+        
+        {doctors.length === 0 ? (
+          <div className={styles.noResults}>
+            <p>No doctors match your search criteria. Please try different filters.</p>
+          </div>
+        ) : (
+          <div className={styles.doctorGrid}>
+            {doctors.map(doctor => (
+              <div 
+                key={doctor._id} 
+                className={styles.doctorCard}
+                onClick={() => handleDoctorSelect(doctor)}
+              >
+                <div className={styles.doctorAvatar}>
+                  {doctor.profilePicture ? (
+                    <img src={doctor.profilePicture} alt={`Dr. ${doctor.user.lastName}`} />
+                  ) : (
+                    <FaUserMd size={40} />
+                  )}
+                </div>
+                <div className={styles.doctorInfo}>
+                  <h4>Dr. {doctor.user.firstName} {doctor.user.lastName}</h4>
+                  <p>{doctor.specialization || 'General Practitioner'}</p>
+                  <p className={styles.experience}>{doctor.experience || '5+'} years experience</p>
+                  {doctor.fees && <p className={styles.fees}>Fee: ${doctor.fees}</p>}
+                  {doctor.rating > 0 && (
+                    <div className={styles.rating}>
+                      <span>★ {doctor.rating.toFixed(1)}</span>
+                      <span className={styles.ratingCount}>({doctor.totalRatings})</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.selectDoctor}>
+                  <FaChevronRight />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
+  // The rest of the component functions remain the same
   const renderDateSelection = () => {
     // Generate dates for the next 30 days
     const dates = [];
@@ -358,7 +548,7 @@ const AppointmentBooking = () => {
           <div className={styles.summaryItem}>
             <FaUserMd style={{ marginRight: '5px' }} />
             <span>
-              Dr. {selectedDoctor.firstName} {selectedDoctor.lastName} - {selectedDoctor.specialty || selectedDoctor.specialization || 'General Practitioner'}
+              Dr. {selectedDoctor.user.firstName} {selectedDoctor.user.lastName} - {selectedDoctor.specialization || 'General Practitioner'}
             </span>
           </div>
           <div className={styles.summaryItem}>
@@ -512,6 +702,7 @@ const AppointmentBooking = () => {
       </div>
     );
   };
+
 
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;

@@ -1,61 +1,217 @@
-// PatientController.js
+// controllers/patientController.js
 const Patient = require('../models/Patient');
+const User = require('../models/User');
 
-class PatientController {
-  static async getAll(req, res) {
-    try {
-      const patients = await Patient.find();
-      return res.json(patients);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
+/**
+ * @desc Get all patients with optional filtering and pagination
+ * @route GET /api/patients
+ * @access Private (Admin, Doctor)
+ */
+const getAllPatients = async (req, res) => {
+  try {
+    // Parse query parameters
+    const { 
+      page = 1, 
+      limit = 10, 
+      sort = '-createdAt', 
+      search, 
+      gender, 
+      bloodGroup,
+      hasAllergies,
+      minAge,
+      maxAge
+    } = req.query;
+
+    // Build the query
+    let query = {};
+
+    // Search by patient name (through user reference)
+    if (search) {
+      const users = await User.find({
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } }
+        ],
+        role: 'patient'
+      }).select('_id');
+      
+      query.user = { $in: users.map(u => u._id) };
     }
-  }
 
-  static async getById(req, res) {
-    try {
-      const patient = await Patient.findById(req.params.id);
-      if (!patient) {
-        return res.status(404).json({ message: 'Patient not found' });
+    // Filter by gender
+    if (gender) {
+      query.gender = gender;
+    }
+
+    // Filter by blood group
+    if (bloodGroup) {
+      query.bloodGroup = bloodGroup;
+    }
+
+    // Filter by allergies
+    if (hasAllergies === 'true') {
+      query.allergies = { $exists: true, $not: { $size: 0 } };
+    } else if (hasAllergies === 'false') {
+      query.$or = [
+        { allergies: { $exists: false } },
+        { allergies: { $size: 0 } }
+      ];
+    }
+
+    // Filter by age range
+    if (minAge || maxAge) {
+      const dateRange = {};
+      if (minAge) {
+        const minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - minAge);
+        dateRange.$lte = minDate;
       }
-      return res.json(patient);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-
-  static async create(req, res) {
-    try {
-      const patient = new Patient(req.body);
-      await patient.save();
-      return res.status(201).json(patient);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  }
-
-  static async update(req, res) {
-    try {
-      const patient = await Patient.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!patient) {
-        return res.status(404).json({ message: 'Patient not found' });
+      if (maxAge) {
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear() - maxAge - 1);
+        dateRange.$gt = maxDate;
       }
-      return res.json(patient);
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
+      query.dateOfBirth = dateRange;
     }
-  }
 
-  static async delete(req, res) {
-    try {
-      const patient = await Patient.findByIdAndDelete(req.params.id);
-      if (!patient) {
-        return res.status(404).json({ message: 'Patient not found' });
-      }
-      return res.json({ message: 'Patient deleted successfully' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error: error.message });
+    // Execute query with pagination
+    const patients = await Patient.find(query)
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email phone role'
+      })
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .sort(sort);
+
+    // Get total count for pagination
+    const total = await Patient.countDocuments(query);
+
+    res.json({
+      success: true,
+      count: patients.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / limit),
+      data: patients
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+/**
+ * @desc Get single patient by ID
+ * @route GET /api/patients/:id
+ * @access Private (Admin, Doctor, Patient - only their own record)
+ */
+const getPatientById = async (req, res) => {
+  try {
+    const patient = await Patient.findById(req.params.id)
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email phone role'
+      });
+
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
     }
-  }
-}
 
-module.exports = PatientController;
+    // Check if user has permission to access this patient record
+    // (Admin and doctors can access all, patients can only access their own)
+    if (req.user.role === 'patient' && patient.user._id.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to access this patient record' });
+    }
+
+    res.json({ success: true, data: patient });
+  } catch (error) {
+    console.error(error);
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+/**
+ * @desc Get patient by user ID
+ * @route GET /api/patients/user/:userId
+ * @access Private (Admin, Doctor, Patient - only their own record)
+ */
+const getPatientByUserId = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.params.userId })
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email phone role'
+      });
+
+    if (!patient) {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+
+    // Check if user has permission to access this patient record
+    if (req.user.role === 'patient' && patient.user._id.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to access this patient record' });
+    }
+
+    res.json({ success: true, data: patient });
+  } catch (error) {
+    console.error(error);
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+/**
+ * @desc Get patients with specific medical condition
+ * @route GET /api/patients/condition/:condition
+ * @access Private (Admin, Doctor)
+ */
+const getPatientsByCondition = async (req, res) => {
+  try {
+    // Only allow doctors and admins to access this endpoint
+    if (req.user.role !== 'doctor' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { condition } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const patients = await Patient.find({
+      'medicalHistory.condition': { $regex: condition, $options: 'i' }
+    })
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email phone'
+      })
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit);
+
+    const total = await Patient.countDocuments({
+      'medicalHistory.condition': { $regex: condition, $options: 'i' }
+    });
+
+    res.json({
+      success: true,
+      count: patients.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / limit),
+      data: patients
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+module.exports = {
+  getAllPatients,
+  getPatientById,
+  getPatientByUserId,
+  getPatientsByCondition
+};

@@ -7,7 +7,6 @@ const auth = require('../middleware/auth'); // Import the auth middleware
 // POST /api/appointments
 router.post(
   '/',
-  auth,
   appointmentController.createAppointment
 );
 
@@ -26,6 +25,12 @@ router.get(
   auth,
   appointmentController.getDoctorAppointments
 );
+
+
+router.get('/available', auth, appointmentController.getAvailableDoctors);
+
+router.get('/specializations', auth, appointmentController.getSpecializations);
+
 
 // Get appointment by ID
 // GET /api/appointments/:id
@@ -64,5 +69,13 @@ router.get(
   auth,
   appointmentController.getDashboardStats
 );
+
+
+router.get(
+  '/availability/:doctorId',
+  auth,
+  appointmentController.getAvailableSlots
+);
+
 
 module.exports = router;

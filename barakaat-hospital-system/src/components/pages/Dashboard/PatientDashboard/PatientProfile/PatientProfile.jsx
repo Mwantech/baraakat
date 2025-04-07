@@ -79,47 +79,51 @@ const PatientProfile = () => {
     }
   }, [currentUser, getUserRole]);
 
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Handle nested address and emergency contact fields
-    if (name.startsWith('address.')) {
-      const addressField = name.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        address: {
-          ...prev.address,
-          [addressField]: value
-        }
-      }));
-    } else if (name.startsWith('emergencyContact.')) {
-      const contactField = name.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        emergencyContact: {
-          ...prev.emergencyContact,
-          [contactField]: value
-        }
-      }));
-    } else if (name === 'allergies') {
-      // Handle allergies as an array
-      setFormData(prev => ({
-        ...prev,
-        allergies: value.split(',').map(a => a.trim())
-      }));
-    } else if (name === 'medicalHistory') {
-      // Handle medical history as an array
-      setFormData(prev => ({
-        ...prev,
-        medicalHistory: value.split(',').map(m => m.trim())
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    // Handle input changes
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      
+      // Handle nested address and emergency contact fields
+      if (name.startsWith('address.')) {
+          const addressField = name.split('.')[1];
+          setFormData(prev => ({
+              ...prev,
+              address: {
+                  ...prev.address,
+                  [addressField]: value
+              }
+          }));
+      } else if (name.startsWith('emergencyContact.')) {
+          const contactField = name.split('.')[1];
+          setFormData(prev => ({
+              ...prev,
+              emergencyContact: {
+                  ...prev.emergencyContact,
+                  [contactField]: value
+              }
+          }));
+      } else if (name === 'allergies') {
+          // Handle allergies as an array
+          setFormData(prev => ({
+              ...prev,
+              allergies: value.split(',').map(a => a.trim())
+          }));
+      } else if (name === 'medicalHistory') {
+        setFormData(prev => ({
+          ...prev,
+          medicalHistory: value.split(',').map(condition => ({
+            condition: condition.trim(),
+            diagnosedDate: new Date(),
+            notes: "",
+            medications: []
+          }))
+        }));
+      } else {
+          setFormData(prev => ({
+              ...prev,
+              [name]: value
+          }));
+      }
   };
 
   // Submit profile update
@@ -210,10 +214,13 @@ const PatientProfile = () => {
           {profile?.medicalHistory && profile.medicalHistory.length > 0 && (
             <div className={styles.profileInfoItem}>
               <span className={styles.infoLabel}>Medical History:</span>
-              <p>{profile.medicalHistory.join(', ')}</p>
+              <p>
+                {profile.medicalHistory
+                  .map(item => item.condition) // Extract just the condition
+                  .join(', ')}
+              </p>
             </div>
           )}
-          
           <div className={styles.actionButtons}>
             <button 
               className={`${styles.button} ${styles.editButton}`} 
@@ -363,7 +370,7 @@ const PatientProfile = () => {
             <input
               type="text"
               name="medicalHistory"
-              value={formData.medicalHistory.join(', ')}
+              value={formData.medicalHistory.map(item => item.condition).join(', ')}
               onChange={handleChange}
             />
           </div>

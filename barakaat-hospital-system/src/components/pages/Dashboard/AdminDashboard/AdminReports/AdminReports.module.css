@@ -1,0 +1,323 @@
+/* Main container */
+.container {
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+}
+
+/* Control panel */
+.controlPanel {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .controlGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.controlLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.375rem;
+}
+
+.selectControl, .dateControl {
+  width: 100%;
+  border: 1px solid #cbd5e0;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.selectControl:focus, .dateControl:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+}
+
+/* Loading spinner */
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 0;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 0.25rem solid #e2e8f0;
+  border-top-color: #4299e1;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error alert */
+.errorAlert {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Report cards */
+.reportCard {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.reportTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.chartContainer {
+  height: 24rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+/* Stats grid */
+.summarySection {
+  margin-top: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.statCard {
+  background-color: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin: 0;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+/* Tables */
+.tableContainer {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.tableSectionTop {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.dataTable th, .dataTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.dataTable th {
+  background-color: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dataTable td {
+  border-bottom: 1px solid #f1f5f9;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.dataTable tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.tableName {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+/* Progress bar */
+.progressContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.progressBar {
+  flex-grow: 1;
+  height: 0.5rem;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #4299e1;
+  border-radius: 9999px;
+}
+
+.progressText {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #4a5568;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+/* Reports grid */
+.reportsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .reportsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* For full-width reports that should span both columns */
+.reportCardFullWidth {
+  grid-column: 1 / -1;
+}
+
+/* Access denied */
+.accessDeniedContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f7f9fc;
+  padding: 1rem;
+}
+
+.accessDeniedCard {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 28rem;
+  width: 100%;
+  text-align: center;
+}
+
+.accessDeniedTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e53e3e;
+  margin-bottom: 1rem;
+}
+
+/* Tooltip styles to ensure they display correctly with Recharts */
+:global(.recharts-tooltip-wrapper) {
+  z-index: 1000;
+}
+
+:global(.recharts-default-tooltip) {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid #cbd5e0 !important;
+  border-radius: 0.375rem !important;
+  padding: 0.75rem !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Fix for charts in responsive containers */
+:global(.recharts-responsive-container) {
+  min-height: 300px;
+}
+
+/* Legend styles */
+:global(.recharts-legend-item) {
+  padding: 0 0.5rem !important;
+}
+
+/* Ensure PieChart labels are readable */
+:global(.recharts-pie-label-text) {
+  font-size: 0.75rem;
+  font-weight: 500;
+  fill: #4a5568;
+}

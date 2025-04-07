@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import styles from './PatientDashboard.module.css';
 import Header from '../../../common/Header/Header';
+import { useAuth, api } from '../../../../contexts/AuthContext'; // Import api and useAuth
 
 // Import icons
 import { 
@@ -20,52 +21,106 @@ import {
 
 const PatientDashboard = () => {
   const location = useLocation();
+  const { getToken, currentUser } = useAuth();
   const [notifications, setNotifications] = useState(3);
-
-  // Sample data for dashboard widgets
-  const stats = [
-    { id: 1, icon: <FaCalendarAlt />, value: '4', label: 'Upcoming Appointments', color: 'blue' },
-    { id: 2, icon: <FaUserMd />, value: '3', label: 'Assigned Doctors', color: 'green' },
-    { id: 3, icon: <FaFileAlt />, value: '12', label: 'Medical Records', color: 'purple' },
-    { id: 4, icon: <FaPrescriptionBottleAlt />, value: '5', label: 'Active Prescriptions', color: 'orange' }
-  ];
-
-  const upcomingAppointments = [
-    { 
-      id: 1, 
-      day: '15', 
-      month: 'Mar', 
-      title: 'General Checkup', 
-      doctor: 'Dr. Sarah Johnson',
-      time: '10:00 AM',
-      status: 'confirmed'
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      upcomingAppointments: 0,
+      completedAppointments: 0,
+      activePrescriptions: 0,
+      medicalRecords: 0
     },
-    { 
-      id: 2, 
-      day: '22', 
-      month: 'Mar', 
-      title: 'Dental Appointment', 
-      doctor: 'Dr. Michael Chen',
-      time: '2:00 PM',
-      status: 'pending'
-    }
-  ];
+    nextAppointment: null,
+    expiringPrescription: null
+  });
+  
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
 
   // Check if we're on exactly the dashboard/patient route (not a sub-route)
   const isExactDashboard = location.pathname === '/dashboard/patient';
 
+  // Fetch dashboard data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!isExactDashboard) return;
+      
+      try {
+        setLoading(true);
+        const response = await api.get('/dashboard/patient');
+        setDashboardData(response.data);
+        
+        // Also fetch upcoming appointments (limited to 2 for the dashboard)
+        const appointmentsResponse = await api.get('/api/appointments/patient?limit=2&status=scheduled');
+        
+        // Transform the appointments to match the format needed for display
+        const formattedAppointments = appointmentsResponse.data.map(apt => {
+          const appointmentDate = new Date(apt.appointmentDate);
+          return {
+            id: apt._id,
+            day: appointmentDate.getDate(),
+            month: appointmentDate.toLocaleString('default', { month: 'short' }),
+            title: apt.type || 'Appointment',
+            doctor: `Dr. ${apt.doctor?.user?.firstName} ${apt.doctor?.user?.lastName}`,
+            time: apt.startTime,
+            status: apt.status === 'scheduled' ? 'confirmed' : apt.status
+          };
+        });
+        
+        setUpcomingAppointments(formattedAppointments);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [isExactDashboard]);
+
+  // Convert dashboard data to stats format for display
+  const stats = [
+    { 
+      id: 1, 
+      icon: <FaCalendarAlt />, 
+      value: dashboardData.stats.upcomingAppointments.toString(), 
+      label: 'Upcoming Appointments', 
+      color: 'blue' 
+    },
+    { 
+      id: 2, 
+      icon: <FaUserMd />, 
+      value: '-', // This might need to be fetched separately
+      label: 'Assigned Doctors', 
+      color: 'green' 
+    },
+    { 
+      id: 3, 
+      icon: <FaFileAlt />, 
+      value: dashboardData.stats.medicalRecords.toString(), 
+      label: 'Medical Records', 
+      color: 'purple' 
+    },
+    { 
+      id: 4, 
+      icon: <FaPrescriptionBottleAlt />, 
+      value: dashboardData.stats.activePrescriptions.toString(), 
+      label: 'Active Prescriptions', 
+      color: 'orange' 
+    }
+  ];
+
   return (
     <div className={styles.dashboardContainer}>
-      {/* Import the Header component at the top level */}
-      <Header />
+      {/* Wrap Header in a container with proper positioning */}
+      <div className={styles.headerContainer}>
+        <Header />
+      </div>
       
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <div className={styles.logo}>
-            <FaHospital />
-            <span className={styles.logoText}>MedCare</span>
-          </div>
+          
         </div>
         <ul className={styles.navMenu}>
           <li className={styles.navItem}>
@@ -135,7 +190,9 @@ const PatientDashboard = () => {
                     className={styles.profileAvatar} 
                   />
                   <div className={styles.profileInfo}>
-                    <span className={styles.profileName}>John Doe</span>
+                    <span className={styles.profileName}>
+                      {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Loading...'}
+                    </span>
                     <span className={styles.profileRole}>Patient</span>
                   </div>
                 </div>
@@ -150,7 +207,9 @@ const PatientDashboard = () => {
                     {stat.icon}
                   </div>
                   <div className={styles.statContent}>
-                    <h3 className={styles.statValue}>{stat.value}</h3>
+                    <h3 className={styles.statValue}>
+                      {loading ? '...' : stat.value}
+                    </h3>
                     <p className={styles.statLabel}>{stat.label}</p>
                   </div>
                 </div>
@@ -164,39 +223,65 @@ const PatientDashboard = () => {
                 <Link to="/dashboard/patient/appointments" className={styles.cardAction}>View All</Link>
               </div>
               
-              {upcomingAppointments.map(appointment => (
-                <div key={appointment.id} className={styles.appointmentItem}>
-                  <div className={styles.appointmentDate}>
-                    <span className={styles.appointmentDay}>{appointment.day}</span>
-                    <span className={styles.appointmentMonth}>{appointment.month}</span>
+              {loading ? (
+                <p>Loading appointments...</p>
+              ) : upcomingAppointments.length > 0 ? (
+                upcomingAppointments.map(appointment => (
+                  <div key={appointment.id} className={styles.appointmentItem}>
+                    <div className={styles.appointmentDate}>
+                      <span className={styles.appointmentDay}>{appointment.day}</span>
+                      <span className={styles.appointmentMonth}>{appointment.month}</span>
+                    </div>
+                    <div className={styles.appointmentInfo}>
+                      <h3 className={styles.appointmentTitle}>{appointment.title}</h3>
+                      <p className={styles.appointmentDoctor}>
+                        <FaUserMd style={{ marginRight: '5px' }} />
+                        {appointment.doctor}
+                      </p>
+                      <p className={styles.appointmentTime}>
+                        <FaClock style={{ marginRight: '5px' }} />
+                        {appointment.time}
+                      </p>
+                    </div>
+                    <div>
+                      <span className={`${styles.appointmentStatus} ${styles[`status${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`]}`}>
+                        {appointment.status === 'confirmed' && <FaCheck style={{ marginRight: '5px' }} />}
+                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.appointmentInfo}>
-                    <h3 className={styles.appointmentTitle}>{appointment.title}</h3>
-                    <p className={styles.appointmentDoctor}>
-                      <FaUserMd style={{ marginRight: '5px' }} />
-                      {appointment.doctor}
-                    </p>
-                    <p className={styles.appointmentTime}>
-                      <FaClock style={{ marginRight: '5px' }} />
-                      {appointment.time}
-                    </p>
-                  </div>
-                  <div>
-                    <span className={`${styles.appointmentStatus} ${styles[`status${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}`]}`}>
-                      {appointment.status === 'confirmed' && <FaCheck style={{ marginRight: '5px' }} />}
-                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>No upcoming appointments.</p>
+              )}
             </div>
 
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Recent Medical Activity</h2>
               </div>
-              <p>Your recent lab results have been uploaded. Please check your medical records.</p>
-              <button className={styles.buttonPrimary}>View Records</button>
+              {dashboardData.nextAppointment ? (
+                <>
+                  <p>Your next appointment is scheduled for {new Date(dashboardData.nextAppointment.appointmentDate).toLocaleDateString()} at {dashboardData.nextAppointment.startTime}.</p>
+                  <Link to="/dashboard/patient/appointments">
+                    <button className={styles.buttonPrimary}>View Details</button>
+                  </Link>
+                </>
+              ) : dashboardData.expiringPrescription ? (
+                <>
+                  <p>You have a prescription ending soon. Please check your prescriptions.</p>
+                  <Link to="/dashboard/patient/prescriptions">
+                    <button className={styles.buttonPrimary}>View Prescriptions</button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p>No recent medical activity to display.</p>
+                  <Link to="/dashboard/patient/medical-records">
+                    <button className={styles.buttonPrimary}>View Records</button>
+                  </Link>
+                </>
+              )}
             </div>
           </>
         ) : (

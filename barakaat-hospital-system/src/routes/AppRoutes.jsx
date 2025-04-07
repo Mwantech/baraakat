@@ -35,7 +35,7 @@ import DoctorProfile from '../components/pages/Dashboard/DoctorDashboard/DoctorP
 import AdminDashboard from '../components/pages/Dashboard/AdminDashboard/AdminDashboard';
 import AdminUsers from '../components/pages/Dashboard/AdminDashboard/AdminUsers/AdminUsers';
 import AdminDoctors from '../components/pages/Dashboard/AdminDashboard/AdminDoctors/AdminDoctors';
-import AdminPatients from '../components/pages/Dashboard/AdminDashboard/AdminPatients/AdminPatients';
+import AdminManagement from '../components/pages/Dashboard/AdminDashboard/AdminManagement/AdminManagement.jsx';
 import AdminReports from '../components/pages/Dashboard/AdminDashboard/AdminReports/AdminReports';
 import AdminSettings from '../components/pages/Dashboard/AdminDashboard/AdminSettings/AdminSettings';
 
@@ -146,7 +146,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/dashboard/admin/users" replace />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="doctors" element={<AdminDoctors />} />
-        <Route path="patients" element={<AdminPatients />} />
+        <Route path="admins" element={<AdminManagement />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>

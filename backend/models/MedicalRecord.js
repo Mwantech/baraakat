@@ -16,65 +16,132 @@ const MedicalRecordSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Appointment'
   },
-  recordType: {
+  visitDate: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  chiefComplaint: {
     type: String,
-    enum: ['consultation', 'lab_result', 'imaging', 'surgery', 'vaccination', 'allergy', 'chronic_condition'],
     required: true
   },
-  diagnosis: [{
-    condition: String,
-    notes: String,
-    isChronic: Boolean
-  }],
-  symptoms: [String],
   vitalSigns: {
-    bloodPressure: String,
+    temperature: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['°C', '°F'],
+        default: '°C'
+      }
+    },
+    bloodPressure: {
+      systolic: Number,
+      diastolic: Number
+    },
     heartRate: Number,
-    temperature: Number,
     respiratoryRate: Number,
     oxygenSaturation: Number,
-    weight: Number,
-    height: Number,
+    weight: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['kg', 'lb'],
+        default: 'kg'
+      }
+    },
+    height: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['cm', 'in'],
+        default: 'cm'
+      }
+    },
     bmi: Number
   },
-  labResults: [{
-    testName: String,
-    testDate: Date,
-    result: String,
-    normalRange: String,
-    interpretation: String,
-    attachments: [String] // File URLs
-  }],
-  medications: [{
-    prescriptionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Prescription'
-    },
+  symptoms: [String],
+  diagnosis: [{
+    name: String,
+    icdCode: String,
     notes: String
   }],
-  treatments: [{
-    name: String,
-    description: String,
-    startDate: Date,
-    endDate: Date,
-    outcome: String
-  }],
+  treatment: {
+    medications: [{
+      medicationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Prescription'
+      },
+      name: String,
+      dosage: String,
+      frequency: String,
+      duration: String,
+      notes: String
+    }],
+    procedures: [{
+      name: String,
+      description: String,
+      date: Date,
+      notes: String
+    }],
+    recommendedTests: [{
+      name: String,
+      description: String,
+      isCompleted: {
+        type: Boolean,
+        default: false
+      },
+      results: String,
+      date: Date
+    }]
+  },
+  followUp: {
+    required: Boolean,
+    recommendedDate: Date,
+    notes: String
+  },
   attachments: [{
     name: String,
-    type: String,
-    url: String,
+    fileType: String,
+    fileURL: String,
     uploadDate: {
       type: Date,
       default: Date.now
-    }
+    },
+    description: String
   }],
-  notes: String,
-  aiAnalysis: {
-    suggestions: [String],
-    riskFactors: [String],
-    similarCases: [String]
+  notes: {
+    doctorNotes: String,
+    nursingNotes: String,
+    privateNotes: String
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
+
+// Method to calculate BMI if weight and height are provided
+MedicalRecordSchema.pre('save', function(next) {
+  if (this.vitalSigns && this.vitalSigns.weight && this.vitalSigns.weight.value && 
+      this.vitalSigns.height && this.vitalSigns.height.value) {
+    
+    let weight = this.vitalSigns.weight.value;
+    let height = this.vitalSigns.height.value;
+
+    // Convert to metric if needed
+    if (this.vitalSigns.weight.unit === 'lb') {
+      weight = weight * 0.453592; // lb to kg
+    }
+    if (this.vitalSigns.height.unit === 'in') {
+      height = height * 2.54; // in to cm
+    }
+
+    // BMI = weight(kg) / (height(m))²
+    const heightInMeters = height / 100;
+    this.vitalSigns.bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
+  }
+  next();
+});
 
 const MedicalRecord = mongoose.model('MedicalRecord', MedicalRecordSchema);
 module.exports = MedicalRecord;
