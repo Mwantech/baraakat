@@ -14,7 +14,7 @@ router.post(
 // GET /api/appointments/patient/:patientId
 router.get(
   '/patient/:patientId',
-  auth,
+ 
   appointmentController.getPatientAppointments
 );
 

@@ -338,7 +338,7 @@ const AppointmentBooking = () => {
 
       setSuccessMessage('Appointment booked successfully!');
       setTimeout(() => {
-        navigate('/appointments');
+        navigate('/patient/appointments');
       }, 2000);
     } catch (error) {
       console.error('Error booking appointment:', error);

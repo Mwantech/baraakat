@@ -22,4 +22,7 @@ router.get('/doctors/', doctorController.getDoctors);
 // Route to fetch a single doctor by ID
 router.get('/doctors/:doctorId', doctorController.getDoctorById);
 
+// Add this route to routes/auth.js
+router.get('/doctors/user/:userId', doctorController.getDoctorByUserId);
+
 module.exports = router;

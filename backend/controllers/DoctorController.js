@@ -35,4 +35,31 @@ exports.getDoctorById = async (req, res) => {
   }
 };
 
+/**
+ * GET /doctors/user/:userId
+ * Fetch a specific doctor by user ID
+ */
+exports.getDoctorByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const doctor = await Doctor.findOne({ user: userId }).populate('user');
 
+    if (!doctor) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Doctor not found for this user' 
+      });
+    }
+
+    res.status(200).json({ 
+      success: true,
+      data: doctor 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message 
+    });
+  }
+};

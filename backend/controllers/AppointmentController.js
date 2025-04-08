@@ -25,59 +25,13 @@ exports.createAppointment = async (req, res) => {
     // Get the actual patient ID for consistency in the database
     const actualPatientId = patient._id;
     
-    // Validate doctor exists and is available
+    // Validate doctor exists
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
     
-    if (!doctor.isAvailable || !doctor.isVerified) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Doctor is not available for appointments' 
-      });
-    }
-    
-    // Check if doctor has any availability slots configured
-    if (!doctor.availableTime || doctor.availableTime.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Doctor has no availability schedule configured'
-      });
-    }
-    
-    // More flexible day comparison
-    const appointmentDay = new Date(appointmentDate).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const doctorSchedule = doctor.availableTime.find(time => 
-      time && time.day && time.day.toLowerCase() === appointmentDay
-    );
-    
-    if (!doctorSchedule) {
-      return res.status(400).json({
-        success: false,
-        message: 'Doctor is not available on this day'
-      });
-    }
-    
-    // Check if the requested time is within the doctor's schedule for the day
-    const [requestStartHour, requestStartMinute] = startTime.split(':').map(Number);
-    const [requestEndHour, requestEndMinute] = endTime.split(':').map(Number);
-    const [scheduleStartHour, scheduleStartMinute] = doctorSchedule.startTime.split(':').map(Number);
-    const [scheduleEndHour, scheduleEndMinute] = doctorSchedule.endTime.split(':').map(Number);
-    
-    const requestStartMinutes = requestStartHour * 60 + requestStartMinute;
-    const requestEndMinutes = requestEndHour * 60 + requestEndMinute;
-    const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMinute;
-    const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMinute;
-    
-    if (requestStartMinutes < scheduleStartMinutes || requestEndMinutes > scheduleEndMinutes) {
-      return res.status(400).json({
-        success: false,
-        message: 'Requested time is outside doctor\'s working hours'
-      });
-    }
-    
-    // Check if the time slot is available
+    // Check if the time slot is available (no conflicting appointments)
     const conflictingAppointment = await Appointment.findOne({
       doctor: doctorId,
       appointmentDate: { 
@@ -95,6 +49,12 @@ exports.createAppointment = async (req, res) => {
       });
     }
     
+    // Handle symptoms - convert from array to string if needed
+    let processedSymptoms = symptoms;
+    if (Array.isArray(symptoms)) {
+      processedSymptoms = symptoms.join(', ');
+    }
+    
     // Create the appointment with the actual patient ID
     const newAppointment = new Appointment({
       patient: actualPatientId,
@@ -102,7 +62,7 @@ exports.createAppointment = async (req, res) => {
       appointmentDate,
       startTime,
       endTime,
-      symptoms,
+      symptoms: processedSymptoms,
       notes,
       fee: doctor.fees,
       status: 'scheduled'
@@ -464,16 +424,13 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// Get doctors available for appointments
+// Get doctors for appointments (removed availability checking)
 exports.getAvailableDoctors = async (req, res) => {
   try {
-    const { specialization, date } = req.query;
+    const { specialization } = req.query;
     
-    // Basic filter for available and verified doctors
-    const filter = { 
-      isAvailable: true,
-      isVerified: true
-    };
+    // Basic filter for doctors, no availability check
+    const filter = {};
     
     // Additional filter by specialization if provided
     if (specialization) {
@@ -488,26 +445,17 @@ exports.getAvailableDoctors = async (req, res) => {
       })
       .select('specialization department qualification experience fees rating totalRatings availableTime profilePicture bio');
     
-    // If date is provided, filter doctors by availability on that day
-    let availableDoctors = doctors;
-    if (date) {
-      const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      availableDoctors = doctors.filter(doctor => {
-        return doctor.availableTime.some(time => time.day === dayOfWeek);
-      });
-    }
-    
     res.status(200).json({
       success: true,
-      count: availableDoctors.length,
-      data: availableDoctors
+      count: doctors.length,
+      data: doctors
     });
     
   } catch (error) {
-    console.error('Error fetching available doctors:', error);
+    console.error('Error fetching doctors:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching available doctors',
+      message: 'Error fetching doctors',
       error: error.message
     });
   }
@@ -548,17 +496,10 @@ exports.getAvailableSlots = async (req, res) => {
       });
     }
 
-    // Validate doctor exists and is available
+    // Validate doctor exists
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
-    }
-
-    if (!doctor.isAvailable || !doctor.isVerified) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Doctor is not available for appointments' 
-      });
     }
 
     // Check if doctor has any availability set
@@ -596,18 +537,23 @@ exports.getAvailableSlots = async (req, res) => {
     }).select('startTime endTime');
 
     // Generate all possible slots based on doctor's availability
-    // Use the slotDuration from the daySchedule instead of appointmentDuration
     const allSlots = generateTimeSlots(
       daySchedule.startTime, 
       daySchedule.endTime, 
-      daySchedule.slotDuration || 30 // Use slotDuration from the schema
+      daySchedule.slotDuration || 30
     );
 
-    // Filter out booked slots
+    // Format booked appointments times to ensure consistent comparison
+    const bookedTimes = bookedAppointments.map(appt => ({
+      startTime: formatTime(appt.startTime),
+      endTime: formatTime(appt.endTime)
+    }));
+
+    // Filter out booked slots with more reliable comparison
     const availableSlots = allSlots.filter(slot => {
-      return !bookedAppointments.some(appt => {
-        return appt.startTime === slot.startTime && appt.endTime === slot.endTime;
-      });
+      return !bookedTimes.some(booked => 
+        booked.startTime === slot.startTime && booked.endTime === slot.endTime
+      );
     });
 
     res.status(200).json({
@@ -624,6 +570,26 @@ exports.getAvailableSlots = async (req, res) => {
     });
   }
 };
+
+// Helper function to ensure consistent time format
+function formatTime(time) {
+  if (!time) return null;
+  
+  // If time is already a string in HH:MM format, return it
+  if (typeof time === 'string' && /^\d{1,2}:\d{2}$/.test(time)) {
+    // Ensure it's always in 2-digit format (09:00 instead of 9:00)
+    const [hours, minutes] = time.split(':');
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  }
+  
+  // If time is a Date object, convert to HH:MM string
+  if (time instanceof Date) {
+    return `${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
+  }
+  
+  // Handle other formats as needed
+  return time;
+}
 
 // Helper function to generate time slots
 function generateTimeSlots(startTime, endTime, durationMinutes) {
@@ -713,4 +679,3 @@ exports.getPatientByIdOrUserId = async (req, res) => {
     });
   }
 };
-

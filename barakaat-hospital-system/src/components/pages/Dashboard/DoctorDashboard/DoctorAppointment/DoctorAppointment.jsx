@@ -10,8 +10,8 @@ export const DoctorAppointment = () => {
   const [error, setError] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   
-  // Use id instead of _id based on your currentUser structure
-  const doctorId = currentUser?.id;
+  // The user ID from auth context
+  const userId = currentUser?.id;
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -20,8 +20,8 @@ export const DoctorAppointment = () => {
         console.log("Current user:", currentUser);
         console.log("Current user role:", getUserRole());
         
-        if (!doctorId) {
-          throw new Error("Doctor ID not found. Please ensure you're logged in as a doctor.");
+        if (!userId) {
+          throw new Error("User ID not found. Please ensure you're logged in.");
         }
         
         // Get token
@@ -30,21 +30,34 @@ export const DoctorAppointment = () => {
           throw new Error("Authentication token not found");
         }
         
+        // First, fetch the doctor record to get the actual doctor ID
+        const doctorResponse = await axios.get(`${API_BASE_URL}/auth/doctors/user/${userId}`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
+        
+        if (!doctorResponse.data || !doctorResponse.data.success) {
+          throw new Error(`Error fetching doctor record: ${doctorResponse.status}`);
+        }
+        
+        const doctorId = doctorResponse.data.data._id;
+        
         console.log("Fetching appointments for doctor ID:", doctorId);
         
-        // Updated endpoint to match our controller
-        const response = await axios.get(`${API_BASE_URL}/appointments/doctor/${doctorId}`, {
+        // Now, use the actual doctor ID to fetch appointments
+        const appointmentsResponse = await axios.get(`${API_BASE_URL}/appointments/doctor/${doctorId}`, {
           headers: {
             'x-auth-token': token
           }
         });
   
-        if (!response.data || !response.data.success) {
-          throw new Error(`Error: ${response.status}`);
+        if (!appointmentsResponse.data || !appointmentsResponse.data.success) {
+          throw new Error(`Error: ${appointmentsResponse.status}`);
         }
   
         // Map the response data to match the component's expected structure
-        const formattedAppointments = response.data.data.map(app => ({
+        const formattedAppointments = appointmentsResponse.data.data.map(app => ({
           _id: app._id,
           patientName: app.patient?.user ? 
             `${app.patient.user.firstName} ${app.patient.user.lastName}` : 
@@ -70,15 +83,17 @@ export const DoctorAppointment = () => {
       }
     };
   
-    // Only fetch appointments if we have a doctorId
-    if (doctorId) {
+    // Only fetch appointments if we have a userId
+    if (userId) {
       fetchAppointments();
     } else {
-      console.error("Doctor ID not found. Current user:", currentUser);
-      setError("Doctor ID not found. Please ensure you're logged in as a doctor.");
+      console.error("User ID not found. Current user:", currentUser);
+      setError("User ID not found. Please ensure you're logged in.");
       setLoading(false);
     }
-  }, [getToken, getUserRole, doctorId, currentUser]);
+  }, [getToken, getUserRole, userId, currentUser]);
+
+
 
   const handleStatusUpdate = async (id, status) => {
     try {
@@ -88,8 +103,9 @@ export const DoctorAppointment = () => {
         throw new Error("Authentication token not found");
       }
       
-      // Updated to PATCH and match our controller endpoint
-      const response = await axios.patch(`${API_BASE_URL}/appointments/${id}/status`, 
+      // Updated to PUT and correct endpoint to match our controller
+      const response = await axios.put(
+        `${API_BASE_URL}/appointments/${id}`, 
         { status },
         {
           headers: {
@@ -98,11 +114,11 @@ export const DoctorAppointment = () => {
           }
         }
       );
-
+  
       if (!response.data || !response.data.success) {
         throw new Error(`Error: ${response.status}`);
       }
-
+  
       // Update local state to reflect the change
       setAppointments(appointments.map(app => 
         app._id === id ? { ...app, status } : app
@@ -126,8 +142,9 @@ export const DoctorAppointment = () => {
         throw new Error("Authentication token not found");
       }
       
-      // Updated to PATCH and match our controller endpoint
-      const response = await axios.patch(`${API_BASE_URL}/appointments/${id}/notes`, 
+      // Updated to PUT and correct endpoint to match our controller
+      const response = await axios.put(
+        `${API_BASE_URL}/appointments/${id}`, 
         { notes },
         {
           headers: {
@@ -136,11 +153,11 @@ export const DoctorAppointment = () => {
           }
         }
       );
-
+  
       if (!response.data || !response.data.success) {
         throw new Error(`Error: ${response.status}`);
       }
-
+  
       // Update local state to reflect the change
       setAppointments(appointments.map(app => 
         app._id === id ? { ...app, notes } : app
@@ -152,6 +169,7 @@ export const DoctorAppointment = () => {
       setError(err.message);
     }
   };
+
 
   const formatDate = (dateString) => {
     const options = { 
@@ -193,9 +211,16 @@ export const DoctorAppointment = () => {
               <div>
                 <h3>Reported Symptoms</h3>
                 <ul>
-                  {selectedAppointment.symptoms.map((symptom, index) => (
-                    <li key={index}>{symptom}</li>
-                  ))}
+                  {selectedAppointment.symptoms && Array.isArray(selectedAppointment.symptoms) && selectedAppointment.symptoms.length > 0 && (
+                    <div>
+                      <h3>Reported Symptoms</h3>
+                      <ul>
+                        {selectedAppointment.symptoms.map((symptom, index) => (
+                          <li key={index}>{symptom}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </ul>
               </div>
             )}
@@ -224,7 +249,7 @@ export const DoctorAppointment = () => {
               <h3>Update Status</h3>
               <div className={styles.statusButtons}>
                 <button 
-                  onClick={() => handleStatusUpdate(selectedAppointment._id, 'confirmed')}
+                  onClick={() => handleStatusUpdate(selectedAppointment._id, 'scheduled')}
                   className={`${styles.statusButton} ${styles.confirmed}`}
                 >
                   Confirm
