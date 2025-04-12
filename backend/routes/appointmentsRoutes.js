@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const appointmentController = require('../controllers/appointmentController');
+const appointmentController = require('../controllers/AppointmentController');
 const auth = require('../middleware/auth'); // Import the auth middleware
 
 // Create a new appointment

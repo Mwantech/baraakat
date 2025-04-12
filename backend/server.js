@@ -10,6 +10,7 @@ const prescriptionRoutes = require("./routes/prescriptionsRoutes");
 const patientRoutes = require("./routes/patientsRoutes");
 const medicalRecordsRoutes = require("./routes/medicalRecordsRoutes");
 const dashboardStatsRoutes = require("./routes/dashboardstatsRoutes");
+const MpesaRooutes = require("./routes/mpesaRoutes");
 
 
 const app = express();
@@ -37,6 +38,7 @@ app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/medical-records", medicalRecordsRoutes);
 app.use("/api/dashboard", dashboardStatsRoutes);
+app.use("/api/payments", MpesaRooutes);
 
 // Root Route
 app.get("/", (req, res) => {

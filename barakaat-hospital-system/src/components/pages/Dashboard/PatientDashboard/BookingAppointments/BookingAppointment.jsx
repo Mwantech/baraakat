@@ -11,12 +11,14 @@ import {
   FaClinicMedical,
   FaChevronRight,
   FaCheckCircle,
-  FaFilter
+  FaFilter,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 import { useAuth, API_BASE_URL } from '../../../../../contexts/AuthContext';
+import MpesaPayment from './MpesaPayment';
 
 const AppointmentBooking = () => {
-  const { getToken, currentUser } = useAuth(); // Change from user to currentUser to match context
+  const { getToken, currentUser } = useAuth();
   const navigate = useNavigate();
   
   const [doctors, setDoctors] = useState([]);
@@ -50,6 +52,9 @@ const AppointmentBooking = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [specializations, setSpecializations] = useState([]);
   const [userId, setUserId] = useState('');
+  
+  // Add state for appointment ID (to use for payment)
+  const [createdAppointmentId, setCreatedAppointmentId] = useState(null);
 
   // Debug log to check user data
   useEffect(() => {
@@ -259,6 +264,7 @@ const AppointmentBooking = () => {
     });
   };
 
+  // Modified to create the appointment first, then proceed to payment
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -336,15 +342,26 @@ const AppointmentBooking = () => {
         throw new Error('Failed to create appointment');
       }
 
-      setSuccessMessage('Appointment booked successfully!');
-      setTimeout(() => {
-        navigate('/patient/appointments');
-      }, 2000);
+      // Save the created appointment ID for payment
+      setCreatedAppointmentId(response.data.data._id);
+      
+      // Proceed to payment step
+      setCurrentStep(5);
+      setSubmitting(false);
+      
     } catch (error) {
       console.error('Error booking appointment:', error);
       setError(`Failed to book appointment: ${error.response?.data?.message || error.message}`);
       setSubmitting(false);
     }
+  };
+
+  // Handle successful payment
+  const handlePaymentSuccess = () => {
+    setSuccessMessage('Appointment booked and payment successful!');
+    setTimeout(() => {
+      navigate('/dashboard/patient/appointments');
+    }, 2000);
   };
 
   const renderDoctorSelection = () => {
@@ -434,7 +451,6 @@ const AppointmentBooking = () => {
     );
   };
 
-  // The rest of the component functions remain the same
   const renderDateSelection = () => {
     // Generate dates for the next 30 days
     const dates = [];
@@ -695,10 +711,34 @@ const AppointmentBooking = () => {
               className={styles.buttonPrimary}
               disabled={submitting}
             >
-              {submitting ? 'Booking...' : 'Book Appointment'}
+              {submitting ? 'Scheduling...' : 'Schedule & Proceed to Payment'}
             </button>
           </div>
         </form>
+      </div>
+    );
+  };
+
+  // New render method for the payment step
+  const renderPayment = () => {
+    return (
+      <div className={styles.selectionContainer}>
+        <h3 className={styles.stepTitle}>
+          <FaMoneyBillWave style={{ marginRight: '10px' }} />
+          Complete Payment
+        </h3>
+        
+        <MpesaPayment 
+          appointmentId={createdAppointmentId} 
+          appointmentDetails={{
+            fee: selectedDoctor.fees || 0,
+            doctor: `Dr. ${selectedDoctor.user.firstName} ${selectedDoctor.user.lastName}`,
+            date: new Date(appointmentData.appointmentDate).toLocaleDateString(),
+            time: `${appointmentData.startTime} - ${appointmentData.endTime}`
+          }}
+          onSuccess={handlePaymentSuccess}
+          onBack={() => setCurrentStep(4)}
+        />
       </div>
     );
   };
@@ -746,6 +786,11 @@ const AppointmentBooking = () => {
             <div className={styles.stepNumber}>4</div>
             <div className={styles.stepLabel}>Details</div>
           </div>
+          <div className={styles.stepConnector}></div>
+          <div className={`${styles.step} ${currentStep >= 5 ? styles.activeStep : ''}`}>
+            <div className={styles.stepNumber}>5</div>
+            <div className={styles.stepLabel}>Payment</div>
+          </div>
         </div>
       </div>
 
@@ -754,6 +799,7 @@ const AppointmentBooking = () => {
         {currentStep === 2 && renderDateSelection()}
         {currentStep === 3 && renderTimeSelection()}
         {currentStep === 4 && renderAppointmentDetails()}
+        {currentStep === 5 && renderPayment()}
       </div>
     </div>
   );

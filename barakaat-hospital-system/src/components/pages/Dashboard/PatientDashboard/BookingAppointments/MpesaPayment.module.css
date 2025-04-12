@@ -1,0 +1,250 @@
+/* Main container styles */
+.paymentContainer {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Header styles */
+  .paymentHeader {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .paymentTitle {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  /* Payment summary area */
+  .paymentSummary {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .paymentAmount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+  }
+  
+  .paymentReference {
+    color: #6c757d;
+    margin: 0;
+  }
+  
+  /* Form elements */
+  .paymentForm {
+    margin-top: 1rem;
+  }
+  
+  .formGroup {
+    margin-bottom: 1.5rem;
+  }
+  
+  .formGroup label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #4e92df;
+    box-shadow: 0 0 0 3px rgba(78, 146, 223, 0.1);
+  }
+  
+  .inputHelp {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
+  
+  .formattedNumber {
+    font-size: 0.9rem;
+    color: #495057;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  /* Button styles */
+  .paymentActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    gap: 1rem;
+  }
+  
+  .buttonPrimary, .buttonSecondary {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .buttonPrimary {
+    background-color: #2563eb;
+    color: white;
+  }
+  
+  .buttonPrimary:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .buttonPrimary:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+  
+  .buttonSecondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+  }
+  
+  .buttonSecondary:hover {
+    background-color: #e5e7eb;
+  }
+  
+  .buttonSecondary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  /* Error message */
+  .errorMessage {
+    color: #dc2626;
+    background-color: #fee2e2;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  
+  /* Payment status styles */
+  .paymentPending, .paymentSuccess, .paymentFailed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  /* Pending payment */
+  .pendingAnimation {
+    margin-bottom: 1rem;
+  }
+  
+  .spinner {
+    font-size: 3rem;
+    color: #3b82f6;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .waitMessage {
+    color: #4b5563;
+    margin-top: 1rem;
+    font-style: italic;
+  }
+  
+  .instructions {
+    background-color: #f0f9ff;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: left;
+    width: 100%;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .instructions h4 {
+    margin-top: 0;
+    color: #1e40af;
+  }
+  
+  .instructions ol {
+    margin: 0.5rem 0 0 1rem;
+    padding-left: 1rem;
+  }
+  
+  .instructions li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Success state */
+  .paymentSuccess {
+    color: #166534;
+  }
+  
+  .successIcon {
+    color: #10b981;
+    margin-bottom: 1rem;
+  }
+  
+  .receiptNumber {
+    background-color: #f0fdf4;
+    border: 1px dashed #34d399;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-family: monospace;
+    margin: 1rem 0;
+  }
+  
+  /* Failed state */
+  .paymentFailed {
+    color: #b91c1c;
+  }
+  
+  .failedIcon {
+    color: #ef4444;
+    margin-bottom: 1rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 576px) {
+    .paymentContainer {
+      padding: 1rem;
+      margin: 0 0.5rem;
+    }
+    
+    .paymentActions {
+      flex-direction: column;
+    }
+    
+    .buttonPrimary, .buttonSecondary {
+      width: 100%;
+    }
+  }

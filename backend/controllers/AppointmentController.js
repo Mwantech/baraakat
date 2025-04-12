@@ -3,6 +3,8 @@ const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctors');
 const User = require('../models/User');
+const { MpesaTransaction } = require('../models/mpesaTransaction');
+
 
 // Create a new appointment
 exports.createAppointment = async (req, res) => {
@@ -87,10 +89,11 @@ exports.createAppointment = async (req, res) => {
 };
 
 // Get appointments for a patient
+// Get appointments for a patient
 exports.getPatientAppointments = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const { status } = req.query;
+    const { status, includeUnpaid } = req.query;
     
     // Try to find patient directly first
     let patient = await Patient.findById(patientId);
@@ -111,7 +114,18 @@ exports.getPatientAppointments = async (req, res) => {
     // Use the actual patient ID for querying appointments
     const actualPatientId = patient._id;
     
-    const filter = { patient: actualPatientId };
+    const filter = { 
+      patient: actualPatientId
+    };
+    
+    // Add payment filter only if we don't want to include unpaid appointments
+    if (includeUnpaid !== 'true') {
+      // Use $or to check both conditions since data might be inconsistent
+      filter.$or = [
+        { isPaid: true },
+        { paymentStatus: 'paid' }
+      ];
+    }
     
     // Filter by status if provided
     if (status) {
@@ -146,12 +160,24 @@ exports.getPatientAppointments = async (req, res) => {
 };
 
 // Get appointments for a doctor
+// Get appointments for a doctor (with option to include unpaid)
 exports.getDoctorAppointments = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const { date, status } = req.query;
+    const { date, status, includeUnpaid } = req.query;
     
-    const filter = { doctor: doctorId };
+    const filter = { 
+      doctor: doctorId
+    };
+    
+    // Add payment filter only if we don't want to include unpaid appointments
+    if (includeUnpaid !== 'true') {
+      // Use $or to check both conditions since data might be inconsistent
+      filter.$or = [
+        { isPaid: true },
+        { paymentStatus: 'paid' }
+      ];
+    }
     
     // Filter by status if provided
     if (status) {

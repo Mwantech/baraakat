@@ -52,7 +52,20 @@ const AppointmentSchema = new mongoose.Schema({
   isPaid: {
     type: Boolean,
     default: false
-  }
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'pending', 'paid', 'failed'],
+    default: 'unpaid'
+  },
+  paymentReference: {
+    type: String
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['mpesa', 'insurance', 'cash', 'card', 'other'],
+    default: 'mpesa'
+  },
 }, { timestamps: true });
 
 const Appointment = mongoose.model('Appointment', AppointmentSchema);

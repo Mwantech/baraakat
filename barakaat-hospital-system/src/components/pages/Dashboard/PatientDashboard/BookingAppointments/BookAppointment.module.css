@@ -584,3 +584,130 @@
     min-width: 70px;
   }
 }
+/* Add these styles to your existing BookAppointment.module.css */
+
+/* Updated steps to accommodate the 5th step */
+.steps {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stepNumber {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.activeStep .stepNumber {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.stepLabel {
+  font-size: 0.85rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.activeStep .stepLabel {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.stepConnector {
+  width: 60px;
+  height: 2px;
+  background-color: #e5e7eb;
+  margin: 0 4px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .stepConnector {
+    width: 30px;
+  }
+  
+  .stepNumber {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .stepLabel {
+    font-size: 0.75rem;
+  }
+}
+
+/* Payment specific styles */
+.paymentTitle {
+  display: flex;
+  align-items: center;
+  color: #4f46e5;
+  margin-bottom: 20px;
+}
+
+.summaryBox {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.summaryTitle {
+  font-weight: 600;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.paymentMethod {
+  margin-top: 24px;
+}
+
+.paymentMethodTitle {
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 15px;
+}
+
+.paymentOption {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paymentOption:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.paymentOptionSelected {
+  border-color: #4f46e5;
+  background-color: #f5f3ff;
+}
