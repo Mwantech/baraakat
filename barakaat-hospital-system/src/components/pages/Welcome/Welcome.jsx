@@ -7,10 +7,10 @@ import Footer from '../../common/Footer/Footer';
 import styles from './Welcome.module.css';
 
 // Import background images
-import hospitalExterior from '@/assets/images/h-exterior.jpeg';
-import doctorTeam from '@/assets/images/d-team.jpeg';
-import medicalEquipment from '@/assets/images/m-equipment.jpeg';
-import patientCare from '@/assets/images/p-care.jpeg';
+import hospitalExterior from '/images/h-exterior.jpeg';
+import doctorTeam from '/images/d-team.jpeg';
+import medicalEquipment from '/images/m-equipment.jpeg';
+import patientCare from '/images/p-care.jpeg';
 
 const Welcome = () => {
   const [currentSlide, setCurrentSlide] = useState(0);

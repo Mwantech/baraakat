@@ -6,10 +6,10 @@ import { FaHospital, FaAward, FaHeartbeat, FaMapMarkerAlt, FaPhone, FaEnvelope }
 
 // Import images
 // Note: You would need to add these images to your project's assets folder
-import hospitalExterior from '@/assets/images/h-exterior.jpeg';
-import founderImage from '@/assets/images/founder.jpeg';
-import missionImage from '@/assets/images/mission.jpeg';
-import staffImage from '@/assets/images/staff.jpeg';
+import hospitalExterior from '/images/h-exterior.jpeg';
+import founderImage from '/images/founder.jpeg';
+import missionImage from '/images/mission.jpeg';
+import staffImage from '/images/staff.jpeg';
 
 const About = () => {
   // Add animation on scroll effect
