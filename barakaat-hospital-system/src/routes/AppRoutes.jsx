@@ -12,7 +12,7 @@ import NotFound from '../components/pages/pages/NotFound/NotFound';
 // Import auth components
 import SignIn from '../components/auth/SignIn/SignIn';
 import SignUp from '../components/auth/SignUp/SignUp';
-import ForgotPassword from '../components/auth/ForgotPassword/ForgotPassword';
+import ForgotPassword from '../components/auth/ForgotPassword/ForgotPassword.jsx';
 import ResetPassword from '../components/auth/ResetPassword/ResetPassword.jsx';
 
 // Import patient dashboard components

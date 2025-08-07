@@ -311,5 +311,3 @@ exports.checkPaymentStatus = async (req, res) => {
     });
   }
 };
-
-

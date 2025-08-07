@@ -4,7 +4,193 @@ const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctors');
 const User = require('../models/User');
 const { MpesaTransaction } = require('../models/mpesaTransaction');
+const nodemailer = require('nodemailer');
 
+// Email configuration - replace with your SMTP settings
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER, // your email
+    pass: process.env.SMTP_PASS  // your email password or app password
+  }
+});
+
+// Email templates
+const emailTemplates = {
+  appointmentConfirmation: (appointmentData, patientName, doctorName) => ({
+    subject: 'Appointment Confirmation - Healthcare System',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2c3e50; margin-bottom: 10px;">Appointment Confirmed</h1>
+          <div style="width: 50px; height: 3px; background-color: #3498db; margin: 0 auto;"></div>
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #2c3e50; margin-top: 0;">Dear ${patientName},</h2>
+          <p style="color: #555; line-height: 1.6;">Your appointment has been successfully scheduled. Please find the details below:</p>
+        </div>
+        
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #2c3e50; margin-top: 0; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Appointment Details</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Doctor:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">Dr. ${doctorName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Date:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">${new Date(appointmentData.appointmentDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Time:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">${appointmentData.startTime} - ${appointmentData.endTime}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Fee:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">KSh ${appointmentData.fee}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; color: #2c3e50;">Status:</td>
+              <td style="padding: 10px 0; color: #27ae60; font-weight: bold;">Scheduled</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px;">
+          <h4 style="color: #2c3e50; margin-top: 0;">Important Notes:</h4>
+          <ul style="color: #555; line-height: 1.6; margin-bottom: 0;">
+            <li>Please arrive 15 minutes before your scheduled time</li>
+            <li>Bring a valid ID and insurance card (if applicable)</li>
+            <li>If you need to reschedule or cancel, please contact us at least 24 hours in advance</li>
+            <li>Payment is required before the consultation</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;">
+          <p style="color: #777; margin-bottom: 10px;">Thank you for choosing our healthcare services!</p>
+          <p style="color: #999; font-size: 12px; margin-bottom: 0;">This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    `
+  }),
+
+  appointmentCancellation: (appointmentData, patientName, doctorName, reason) => ({
+    subject: 'Appointment Cancelled - Healthcare System',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #e74c3c; margin-bottom: 10px;">Appointment Cancelled</h1>
+          <div style="width: 50px; height: 3px; background-color: #e74c3c; margin: 0 auto;"></div>
+        </div>
+        
+        <div style="background-color: #fdf2f2; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #2c3e50; margin-top: 0;">Dear ${patientName},</h2>
+          <p style="color: #555; line-height: 1.6;">Your appointment has been cancelled. Details are provided below:</p>
+        </div>
+        
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #2c3e50; margin-top: 0; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">Cancelled Appointment Details</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Doctor:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">Dr. ${doctorName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Date:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">${new Date(appointmentData.appointmentDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Time:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">${appointmentData.startTime} - ${appointmentData.endTime}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; color: #2c3e50;">Reason:</td>
+              <td style="padding: 10px 0; color: #e74c3c;">${reason || 'No reason provided'}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;">
+          <p style="color: #777; margin-bottom: 10px;">We apologize for any inconvenience caused.</p>
+          <p style="color: #777; margin-bottom: 10px;">Feel free to schedule a new appointment at your convenience.</p>
+          <p style="color: #999; font-size: 12px; margin-bottom: 0;">This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    `
+  }),
+
+  appointmentReminder: (appointmentData, patientName, doctorName) => ({
+    subject: 'Appointment Reminder - Tomorrow - Healthcare System',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #f39c12; margin-bottom: 10px;">Appointment Reminder</h1>
+          <div style="width: 50px; height: 3px; background-color: #f39c12; margin: 0 auto;"></div>
+        </div>
+        
+        <div style="background-color: #fef9e7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #2c3e50; margin-top: 0;">Dear ${patientName},</h2>
+          <p style="color: #555; line-height: 1.6;">This is a friendly reminder about your upcoming appointment tomorrow:</p>
+        </div>
+        
+        <div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #2c3e50; margin-top: 0; border-bottom: 2px solid #f39c12; padding-bottom: 10px;">Appointment Details</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Doctor:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">Dr. ${doctorName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-weight: bold; color: #2c3e50;">Date:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; color: #555;">${new Date(appointmentData.appointmentDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; color: #2c3e50;">Time:</td>
+              <td style="padding: 10px 0; color: #555;">${appointmentData.startTime} - ${appointmentData.endTime}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px;">
+          <h4 style="color: #2c3e50; margin-top: 0;">Preparation Checklist:</h4>
+          <ul style="color: #555; line-height: 1.6; margin-bottom: 0;">
+            <li>Arrive 15 minutes early</li>
+            <li>Bring your ID and insurance card</li>
+            <li>Prepare your list of current medications</li>
+            <li>Write down any questions you have for the doctor</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;">
+          <p style="color: #777; margin-bottom: 10px;">We look forward to seeing you tomorrow!</p>
+          <p style="color: #999; font-size: 12px; margin-bottom: 0;">This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    `
+  })
+};
+
+// Helper function to send emails
+const sendEmail = async (to, template) => {
+  try {
+    const mailOptions = {
+      from: `"Healthcare System" <${process.env.SMTP_USER}>`,
+      to: to,
+      subject: template.subject,
+      html: template.html
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 // Create a new appointment
 exports.createAppointment = async (req, res) => {
@@ -12,11 +198,11 @@ exports.createAppointment = async (req, res) => {
     const { patientId, doctorId, appointmentDate, startTime, endTime, symptoms, notes } = req.body;
     
     // Try to find patient directly by ID first
-    let patient = await Patient.findById(patientId);
+    let patient = await Patient.findById(patientId).populate('user', 'firstName lastName email');
     
     // If not found, try to find patient by user ID
     if (!patient) {
-      patient = await Patient.findOne({ user: patientId });
+      patient = await Patient.findOne({ user: patientId }).populate('user', 'firstName lastName email');
     }
     
     // If still not found, return error
@@ -28,7 +214,7 @@ exports.createAppointment = async (req, res) => {
     const actualPatientId = patient._id;
     
     // Validate doctor exists
-    const doctor = await Doctor.findById(doctorId);
+    const doctor = await Doctor.findById(doctorId).populate('user', 'firstName lastName email');
     if (!doctor) {
       return res.status(404).json({ success: false, message: 'Doctor not found' });
     }
@@ -72,10 +258,24 @@ exports.createAppointment = async (req, res) => {
     
     await newAppointment.save();
     
+    // Send confirmation email to patient
+    if (patient.user && patient.user.email) {
+      const patientName = `${patient.user.firstName} ${patient.user.lastName}`;
+      const doctorName = `${doctor.user.firstName} ${doctor.user.lastName}`;
+      
+      const emailTemplate = emailTemplates.appointmentConfirmation(newAppointment, patientName, doctorName);
+      const emailResult = await sendEmail(patient.user.email, emailTemplate);
+      
+      if (!emailResult.success) {
+        console.error('Failed to send confirmation email:', emailResult.error);
+        // Don't fail the appointment creation if email fails
+      }
+    }
+    
     res.status(201).json({
       success: true,
       data: newAppointment,
-      message: 'Appointment scheduled successfully'
+      message: 'Appointment scheduled successfully and confirmation email sent'
     });
     
   } catch (error) {
@@ -88,7 +288,6 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
-// Get appointments for a patient
 // Get appointments for a patient
 exports.getPatientAppointments = async (req, res) => {
   try {
@@ -160,7 +359,6 @@ exports.getPatientAppointments = async (req, res) => {
 };
 
 // Get appointments for a doctor
-// Get appointments for a doctor (with option to include unpaid)
 exports.getDoctorAppointments = async (req, res) => {
   try {
     const { doctorId } = req.params;
@@ -269,7 +467,21 @@ exports.updateAppointmentStatus = async (req, res) => {
     const { id } = req.params;
     const { status, notes, diagnosis, prescription } = req.body;
     
-    const appointment = await Appointment.findById(id);
+    const appointment = await Appointment.findById(id)
+      .populate({
+        path: 'patient',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      })
+      .populate({
+        path: 'doctor',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      });
     
     if (!appointment) {
       return res.status(404).json({
@@ -313,7 +525,21 @@ exports.cancelAppointment = async (req, res) => {
     const { id } = req.params;
     const { cancellationReason } = req.body;
     
-    const appointment = await Appointment.findById(id);
+    const appointment = await Appointment.findById(id)
+      .populate({
+        path: 'patient',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      })
+      .populate({
+        path: 'doctor',
+        populate: {
+          path: 'user',
+          select: 'firstName lastName email'
+        }
+      });
     
     if (!appointment) {
       return res.status(404).json({
@@ -337,10 +563,23 @@ exports.cancelAppointment = async (req, res) => {
     
     await appointment.save();
     
+    // Send cancellation email to patient
+    if (appointment.patient && appointment.patient.user && appointment.patient.user.email) {
+      const patientName = `${appointment.patient.user.firstName} ${appointment.patient.user.lastName}`;
+      const doctorName = `${appointment.doctor.user.firstName} ${appointment.doctor.user.lastName}`;
+      
+      const emailTemplate = emailTemplates.appointmentCancellation(appointment, patientName, doctorName, cancellationReason);
+      const emailResult = await sendEmail(appointment.patient.user.email, emailTemplate);
+      
+      if (!emailResult.success) {
+        console.error('Failed to send cancellation email:', emailResult.error);
+      }
+    }
+    
     res.status(200).json({
       success: true,
       data: appointment,
-      message: 'Appointment cancelled successfully'
+      message: 'Appointment cancelled successfully and notification email sent'
     });
     
   } catch (error) {
@@ -486,6 +725,7 @@ exports.getAvailableDoctors = async (req, res) => {
     });
   }
 };
+
 
 // Get all unique specializations
 exports.getSpecializations = async (req, res) => {
