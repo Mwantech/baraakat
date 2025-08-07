@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Create API base URL
-export const API_BASE_URL = 'http://localhost:5500/api'; // Adjust this to your backend URL
+export const API_BASE_URL = 'https://baraakat-to6y.onrender.com'; // Adjust this to your backend URL
 
 // Create axios instance with base URL
 export const api = axios.create({
